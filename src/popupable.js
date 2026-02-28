@@ -619,6 +619,7 @@
             let startX, startY, downX, downY, clickOutside, lastTouchCenterX, lastTouchCenterY, lastTouchDistance
             let dragging = false
             const touchPointers = new Set()
+            let activePointerId
 
             const rect = current.cloneContainer.getBoundingClientRect()
             const tx = (e.clientX - rect.left) * (1 - scale)
@@ -658,6 +659,9 @@
                   if (dragging || e.button !== 0) return
                   if (e.pointerType === "touch") {
                     touchPointers.add(e.pointerId)
+                  } else {
+                    activePointerId = e.pointerId
+                    current.cloneContainer.setPointerCapture(e.pointerId)
                   }
                   dragging = true
                   current.cloneContainer.style.transition = "none"
@@ -670,8 +674,10 @@
               },
               {
                 target: document,
-                event: "mousemove",
+                event: "pointermove",
                 func: e => {
+                  if (e.pointerType === "touch") return
+                  if (activePointerId != null && e.pointerId !== activePointerId) return
                   if (!dragging) return
                   lastX = e.clientX - startX
                   lastY = e.clientY - startY
@@ -750,6 +756,8 @@
                       clickOutside = false
                       return
                     }
+                  } else if (activePointerId != null && e.pointerId !== activePointerId) {
+                    return
                   }
 
                   if (e.target === current.cloneContainer.parentElement.parentElement && clickOutside) {
@@ -763,6 +771,10 @@
                   lastTouchCenterX = null
                   lastTouchCenterY = null
                   lastTouchDistance = null
+                  if (activePointerId != null) {
+                    current.cloneContainer.releasePointerCapture(activePointerId)
+                    activePointerId = null
+                  }
 
                   const dx = e.clientX - downX
                   const dy = e.clientY - downY
@@ -776,13 +788,20 @@
                 target: document,
                 event: "pointercancel",
                 func: e => {
-                  if (e.pointerType !== "touch") return
-                  touchPointers.delete(e.pointerId)
-                  if (touchPointers.size) return
+                  if (e.pointerType === "touch") {
+                    touchPointers.delete(e.pointerId)
+                    if (touchPointers.size) return
+                  } else if (activePointerId != null && e.pointerId !== activePointerId) {
+                    return
+                  }
                   dragging = false
                   lastTouchCenterX = null
                   lastTouchCenterY = null
                   lastTouchDistance = null
+                  if (activePointerId != null) {
+                    current.cloneContainer.releasePointerCapture(activePointerId)
+                    activePointerId = null
+                  }
                 }
               },
               {
