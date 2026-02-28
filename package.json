@@ -1,0 +1,32 @@
+{
+  "name": "popupable",
+  "version": "1.0.0",
+  "description": "placeholder",
+  "author": "Ewan Howell <ewanhowell5195>",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/popupable.min.js",
+  "style": "./dist/popupable.min.css",
+  "exports": {
+    ".": "./dist/popupable.min.js",
+    "./styles.css": "./dist/popupable.min.css"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ewanhowell5195/popupable.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ewanhowell5195/popupable/issues"
+  },
+  "homepage": "https://github.com/ewanhowell5195/popupable#readme",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "clean-css": "^5.3.3",
+    "terser": "^5.43.1"
+  }
+}

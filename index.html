@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Popupable</title>
+
+    <style>
+      body {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 24px;
+        padding: 24px;
+        margin: 0;
+      }
+
+      h1,
+      h2 {
+        margin: 0;
+      }
+
+      section {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      section img {
+        max-width: max(100%, 640px);
+        max-height: 360px;
+      }
+
+      .row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        align-items: flex-start;
+      }
+
+      figure {
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      figcaption {
+        font: 14px/1.3 system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+        opacity: 0.8;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .frame {
+        height: 360px;
+        aspect-ratio: 9 / 16;
+      }
+
+      .cover {
+        object-fit: cover;
+      }
+
+      .contain {
+        object-fit: contain;
+        background: #d8d8d8;
+      }
+
+      .texture {
+        image-rendering: pixelated;
+      }
+
+      .gallery-thumb {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+      }
+
+      #gallery2-1.popupable-active {
+        background: #0A4446BB;
+      }
+
+      #gallery2-2.popupable-active {
+        background: #877E75BB;
+      }
+
+      #gallery2-3.popupable-active {
+        background: #45511FBB;
+      }
+
+      #gallery2-4.popupable-active {
+        background: #A00D3CBB;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Popupable</h1>
+
+    <section>
+      <h2>Standard image with border radius</h2>
+
+      <img
+        src="https://picsum.photos/id/1025/1920/1080"
+        style="border-radius: 80px;"
+        data-popupable
+      >
+    </section>
+
+    <section>
+      <h2>Different image when popped up</h2>
+
+      <img
+        src="https://picsum.photos/id/1026/1920/1080"
+        data-popupable
+        data-popupable-src="https://picsum.photos/id/1036/1024/1024"
+      >
+    </section>
+
+    <section>
+      <h2>Aspect ratio with different cropping</h2>
+
+      <label style="display: flex; align-items: center; gap: 8px;">
+        <input type="checkbox" id="maintain-aspect-toggle">
+        Maintain aspect ratio
+      </label>
+
+      <div class="row">
+        <figure>
+          <img
+            src="https://picsum.photos/id/1015/1920/1080"
+            class="frame cover"
+            data-popupable
+          >
+          <figcaption>Cover (cropped)</figcaption>
+        </figure>
+
+        <figure>
+          <img
+            src="https://picsum.photos/id/1043/1920/1080"
+            class="frame contain"
+            data-popupable
+          >
+          <figcaption>Contain (bounds visible)</figcaption>
+        </figure>
+
+        <figure>
+          <img
+            src="https://picsum.photos/id/1044/1920/1080"
+            class="frame stretch"
+            data-popupable
+          >
+          <figcaption>Stretch (distorted)</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Transparency</h2>
+
+      <img
+        src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAdVBMVEUAAAAKvLwAzMwmGgokGAgrHg0zJBE/KhW3g2uzeV5SPYn///+qclmbY0mQWT8Af38AaGhVVVWUYD52SzOBUzmPXj5JJRBCHQp3QjVqQDA0JRIoKCg3Nzc/Pz9KSko6MYlBNZtGOqUDenoFiIgElZUApKQAr6/wvakZAAAAAXRSTlMAQObYZgAAAolJREFUeNrt1l1rHucZReFrj/whu5hSCCQtlOTE/f+/Jz4q9Cu0YIhLcFVpVg+FsOCVehi8jmZgWOzZz33DM4CXlum3gH95GgeAzQZVeL4gTm6Cbp4vqFkD8HwBazPY8wWbMq9utu3mNZ5fotVezbzOE3kBEFbaZuc8kb00NTMUbWJp678Xf2GV7RRtx1TDQQ6XBNvsmL2+2vHq1TftmMPIyAWujtN2cl274ua2jpVpZneXEjjo7XW1q53V9ds4ODO5xIuhvGHvfLI3aixauig415uuO2+vl9+cncfsFw25zL650fXn687jqnXuP68/X3+eV3zE7y6u9eB73MlfAcfbTf3yR8CfAX+if8S/H5/EAbAxj5LN48tULvEBOh8V1AageMTXe2YHAOwHbZxrzPkSR3+ffr8TR2JDzE/4Fj8CDgEwDsW+q+9GsR07hhg2CsALBgMo2v5wNxXnQXMeGQVW7gUAyKI2m6KDsJ8Au3++F5RZO+kKNQjQcLLWgjwUjBXLltFgWWMUUlviocBgNoxNGgMjSxiYAA7zgLFo2hgIENiDU8gQCzDOmViGFAsEuBcQSDCothhpJaDRA8E5fHqH2nTbYm5fHLo1V0u3B7DAuheoeScRYabjjjuzs17cHVaTrTXmK78m9swP34d9oK/dfeXSIH2PW/MXwPvxN/bJlxw8zlYAcEyeI6gNgA/O8P8neN8xe1IHP2gTzegjvhUDfuRygmwEs2GE4mkCDIAzm2R4yAuPsIdR9k8AvMc+3L9+2UEjo4WP0FpgP19O0MzCsqxIoMsdDBvYcQyGmO0ZJRoYCKjLJWY0BAhYwGUBCgkh8MRdOKt+ruqMwAB2OcEX94U1TPbYJP0PkyyAI1S6cSIAAAAASUVORK5CYII="
+        class="texture"
+        data-popupable
+        data-popupable-transparent
+      >
+    </section>
+
+    <section>
+      <h2>Image Gallery (grouped)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Click any image to open the gallery. Use arrow keys or navigation to browse through the group.</p>
+
+      <div class="row">
+        <img
+          src="https://picsum.photos/id/10/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery1"
+        >
+        <img
+          src="https://picsum.photos/id/82/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery1"
+        >
+        <img
+          src="https://picsum.photos/id/30/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery1"
+        >
+        <img
+          src="https://picsum.photos/id/40/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery1"
+        >
+      </div>
+    </section>
+
+    <section>
+      <h2>Image Gallery with unique IDs</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Each image has a unique identifier for custom styling.</p>
+
+      <div class="row">
+        <img
+          src="https://picsum.photos/id/1050/1920/1080"
+          class="gallery-thumb"
+          data-popupable="gallery2-1"
+          data-popupable-group="gallery2"
+        >
+        <img
+          src="https://picsum.photos/id/1065/1920/1080"
+          class="gallery-thumb"
+          data-popupable="gallery2-2"
+          data-popupable-group="gallery2"
+        >
+        <img
+          src="https://picsum.photos/id/1070/1920/1080"
+          class="gallery-thumb"
+          data-popupable="gallery2-3"
+          data-popupable-group="gallery2"
+        >
+        <img
+          src="https://picsum.photos/id/1080/1920/1080"
+          class="gallery-thumb"
+          data-popupable="gallery2-4"
+          data-popupable-group="gallery2"
+        >
+      </div>
+    </section>
+
+    <section>
+      <h2>Titles and descriptions</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Popups can have titles and descriptions</p>
+
+      <div class="row">
+        <img
+          src="https://picsum.photos/id/1011/1920/1080"
+          class="gallery-thumb",
+          data-popupable
+          data-popupable-title="A title"
+          data-popupable-description="And a description"
+          data-popupable-group="gallery3"
+        >
+        <img
+          src="https://picsum.photos/id/1002/1920/1080"
+          class="gallery-thumb",
+          data-popupable
+          data-popupable-description="Just a description"
+          data-popupable-group="gallery3"
+        >
+        <img
+          src="https://picsum.photos/id/1016/1920/1080"
+          class="gallery-thumb",
+          data-popupable
+          data-popupable-title="Just a title"
+          data-popupable-group="gallery3"
+        >
+      </div>
+    </section>
+
+    <section>
+      <h2>Zoomable image</h2>
+      <p>Click on a zoomable image after poping it up to zoom in on it</p>
+
+      <img
+        src="https://picsum.photos/id/28/2560/1440"
+        data-popupable
+        data-popupable-title="I am zoomable"
+        data-popupable-description="Click on the image to zoom in, then you can drag around. Click again to zoom out!"
+        data-popupable-zoomable
+      >
+    </section>
+
+    <script type="module">
+      const toggle = document.getElementById("maintain-aspect-toggle")
+      const images = document.querySelectorAll("label + .row img[data-popupable]")
+
+      toggle.addEventListener("change", () => {
+        for (const img of images) {
+          if (toggle.checked) {
+            img.setAttribute("data-popupable-maintain-aspect", "")
+          } else {
+            img.removeAttribute("data-popupable-maintain-aspect")
+          }
+        }
+      })
+    </script>
+
+    <script type="module">
+      import(`./src/popupable.js?rnd=${Math.random()}`)
+      const link = document.createElement('link')
+      link.rel = "stylesheet"
+      link.href = `src/popupable.css?rnd=${Math.random()}`
+      document.head.append(link)
+    </script>
+  </body>
+</html>
