@@ -249,12 +249,17 @@
     }
   }
 
-  let dragging, downX, downY
+  let dragging, downX, downY, activeTouchPointers = 0
 
 
   document.addEventListener("pointerdown", e => {
     if (e.button !== 0) return
-    mouseDownTarget = e.target
+    if (e.pointerType === "touch") {
+      activeTouchPointers++
+    }
+    if (!dragging) {
+      mouseDownTarget = e.target
+    }
 
     if (dragging || activePopup?.state !== "open") return
     dragging = true
@@ -273,6 +278,10 @@
 
   document.addEventListener("pointerup", async e => {
     if (e.button !== 0) return
+    if (e.pointerType === "touch") {
+      activeTouchPointers = Math.max(0, activeTouchPointers - 1)
+      if (dragging && activeTouchPointers >= 1) return
+    }
 
     let dragged
     if (dragging) {
@@ -565,6 +574,7 @@
 
     popup.addEventListener("pointerup", e => {
       if (popup._state.state === "zoomed") return
+      if (e.pointerType === "touch" && activeTouchPointers > 1) return
 
       const now = performance.now()
       const isNav = e.target.closest(".popupable-next-container, .popupable-prev-container") != null
@@ -840,6 +850,12 @@
 
       openPopupable(activePopup)
     })
+  })
+
+  document.addEventListener("pointercancel", e => {
+    if (e.pointerType === "touch") {
+      activeTouchPointers = Math.max(0, activeTouchPointers - 1)
+    }
   })
 
   document.addEventListener("keydown", e => {
