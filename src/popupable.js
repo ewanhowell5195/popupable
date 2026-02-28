@@ -612,31 +612,81 @@
           if (current.zoomable && e.target.classList.contains("popupable-clone")) {
             state.state = "zoomed"
             popup.classList.add("popupable-locked")
-            
-            let scale = 2
+
+            let x, y, scale = 2
             const minScale = 1.5
             const maxScale = 6
-            let startX, startY, downX, downY, clickOutside, lastTouchCenterX, lastTouchCenterY, lastTouchDistance
-            let dragging = false
-            const touchPointers = new Set()
-            let activePointerId
+            const pointers = new Map()
+            let panPointerId, panLastX, panLastY, pinchLastCenterX, pinchLastCenterY, pinchLastDistance
+            let tapTarget, tapStartX, tapStartY, tapMoved
 
             const rect = current.cloneContainer.getBoundingClientRect()
-            const tx = (e.clientX - rect.left) * (1 - scale)
-            const ty = (e.clientY - rect.top) * (1 - scale)
-            current.cloneContainer.classList.add("popupable-zoomed")
-            current.cloneContainer.style.transform = `translate(${tx}px, ${ty}px) scale(${scale})`
+            x = (e.clientX - rect.left) * (1 - scale)
+            y = (e.clientY - rect.top) * (1 - scale)
 
-            let lastX = tx
-            let lastY = ty
+            const render = () => current.cloneContainer.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
+
+            const clamp = value => Math.min(maxScale, Math.max(minScale, value))
+
+            function zoomAt(targetScale, centerX, centerY) {
+              const prevScale = scale
+              scale = clamp(targetScale)
+              if (scale === prevScale) return false
+              const rect = current.cloneContainer.getBoundingClientRect()
+              const ratio = scale / prevScale
+              const px = centerX - rect.left
+              const py = centerY - rect.top
+              x = x + px * (1 - ratio)
+              y = y + py * (1 - ratio)
+              return true
+            }
+
+            function syncGestureState() {
+              if (pointers.size === 1) {
+                const pointer = pointers.values().next().value
+                panPointerId = pointer.id
+                panLastX = pointer.x
+                panLastY = pointer.y
+                pinchLastCenterX = null
+                pinchLastCenterY = null
+                pinchLastDistance = null
+                return
+              }
+
+              if (pointers.size >= 2) {
+                panPointerId = null
+                const [p1, p2] = [...pointers.values()]
+                pinchLastCenterX = (p1.x + p2.x) / 2
+                pinchLastCenterY = (p1.y + p2.y) / 2
+                pinchLastDistance = Math.hypot(p2.x - p1.x, p2.y - p1.y)
+                return
+              }
+
+              panPointerId = null
+              panLastX = null
+              panLastY = null
+              pinchLastCenterX = null
+              pinchLastCenterY = null
+              pinchLastDistance = null
+            }
+
+            current.cloneContainer.classList.add("popupable-zoomed")
+            render()
 
             state.unzoom = () => {
               state.state = "open"
               popup.classList.remove("popupable-locked")
 
+              for (const pointerId of pointers.keys()) {
+                if (popup.hasPointerCapture(pointerId)) {
+                  popup.releasePointerCapture(pointerId)
+                }
+              }
+
+              pointers.clear()
               current.cloneContainer.classList.remove("popupable-zoomed")
-              current.cloneContainer.style.transform = null
               current.cloneContainer.style.transition = null
+              current.cloneContainer.style.transform = null
 
               for (const listener of state.zoomListeners) {
                 listener.target.removeEventListener(listener.event, listener.func)
@@ -645,190 +695,124 @@
 
             state.zoomListeners = [
               {
-                target: current.cloneContainer.parentElement.parentElement,
+                target: popup,
                 event: "pointerdown",
                 func: e => {
-                  if (e.button !== 0 || e.target !== current.cloneContainer.parentElement.parentElement) return
-                  clickOutside = true
-                }
-              },
-              {
-                target: current.cloneContainer,
-                event: "pointerdown",
-                func: e => {
-                  if (dragging || e.button !== 0) return
-                  if (e.pointerType === "touch") {
-                    touchPointers.add(e.pointerId)
-                  } else {
-                    activePointerId = e.pointerId
-                    current.cloneContainer.setPointerCapture(e.pointerId)
-                  }
-                  dragging = true
+                  if (e.button !== 0) return
                   current.cloneContainer.style.transition = "none"
-                  startX = e.clientX - lastX
-                  startY = e.clientY - lastY
-                  downX = e.clientX
-                  downY = e.clientY
+                  popup.setPointerCapture(e.pointerId)
+                  pointers.set(e.pointerId, {
+                    id: e.pointerId,
+                    x: e.clientX,
+                    y: e.clientY
+                  })
+
+                  if (pointers.size === 1) {
+                    tapTarget = e.target
+                    tapStartX = e.clientX
+                    tapStartY = e.clientY
+                    tapMoved = false
+                  } else {
+                    tapMoved = true
+                  }
+
+                  syncGestureState()
                   e.preventDefault()
                 }
               },
               {
-                target: document,
+                target: popup,
                 event: "pointermove",
                 func: e => {
-                  if (e.pointerType === "touch") return
-                  if (activePointerId != null && e.pointerId !== activePointerId) return
-                  if (!dragging) return
-                  lastX = e.clientX - startX
-                  lastY = e.clientY - startY
-                  current.cloneContainer.style.transform = `translate(${lastX}px, ${lastY}px) scale(${scale})`
-                }
-              },
-              {
-                target: document,
-                event: "touchmove",
-                func: e => {
-                  if (!dragging) return
+                  const pointer = pointers.get(e.pointerId)
+                  if (!pointer) return
 
-                  if (e.touches.length === 1) {
-                    const t = e.touches[0]
-                    if (lastTouchDistance != null) {
-                      startX = t.clientX - lastX
-                      startY = t.clientY - lastY
-                    }
-                    lastX = t.clientX - startX
-                    lastY = t.clientY - startY
-                    lastTouchCenterX = null
-                    lastTouchCenterY = null
-                    lastTouchDistance = null
+                  pointer.x = e.clientX
+                  pointer.y = e.clientY
+
+                  if (!tapMoved && (Math.abs(e.clientX - tapStartX) > 3 || Math.abs(e.clientY - tapStartY) > 3)) {
+                    tapMoved = true
                   }
 
-                  if (e.touches.length === 2) {
-                    const t1 = e.touches[0]
-                    const t2 = e.touches[1]
-
-                    const dx = t2.clientX - t1.clientX
-                    const dy = t2.clientY - t1.clientY
-                    const distance = Math.hypot(dx, dy)
-                    const centerX = (t1.clientX + t2.clientX) / 2
-                    const centerY = (t1.clientY + t2.clientY) / 2
-
-                    if (lastTouchCenterX == null || lastTouchCenterY == null || lastTouchDistance == null) {
-                      lastTouchCenterX = centerX
-                      lastTouchCenterY = centerY
-                      lastTouchDistance = distance
-                    } else {
-                      lastX += centerX - lastTouchCenterX
-                      lastY += centerY - lastTouchCenterY
-
-                      const prevScale = scale
-                      scale = Math.min(maxScale, Math.max(minScale, scale * (distance / lastTouchDistance)))
-
-                      if (scale !== prevScale) {
-                        const rect = current.cloneContainer.getBoundingClientRect()
-                        const px = centerX - rect.left
-                        const py = centerY - rect.top
-                        const scaleRatio = scale / prevScale
-                        lastX = lastX + px * (1 - scaleRatio)
-                        lastY = lastY + py * (1 - scaleRatio)
-                      }
-
-                      lastTouchCenterX = centerX
-                      lastTouchCenterY = centerY
-                      lastTouchDistance = distance
-                    }
+                  if (pointers.size === 1 && panPointerId === e.pointerId) {
+                    const dx = e.clientX - panLastX
+                    const dy = e.clientY - panLastY
+                    if (!dx && !dy) return
+                    x += dx
+                    y += dy
+                    panLastX = e.clientX
+                    panLastY = e.clientY
+                    render()
+                    return
                   }
 
-                  current.cloneContainer.style.transform =
-                    `translate(${lastX}px, ${lastY}px) scale(${scale})`
-                },
-                args: {
-                  passive: true
-                }
-              },
-              {
-                target: document,
-                event: "pointerup",
-                func: e => {
-                  if (e.pointerType === "touch") {
-                    touchPointers.delete(e.pointerId)
-                    if (touchPointers.size) {
-                      clickOutside = false
+                  if (pointers.size >= 2) {
+                    const [p1, p2] = [...pointers.values()]
+                    const centerX = (p1.x + p2.x) / 2
+                    const centerY = (p1.y + p2.y) / 2
+                    const distance = Math.hypot(p2.x - p1.x, p2.y - p1.y)
+
+                    if (!pinchLastDistance) {
+                      pinchLastCenterX = centerX
+                      pinchLastCenterY = centerY
+                      pinchLastDistance = distance
                       return
                     }
-                  } else if (activePointerId != null && e.pointerId !== activePointerId) {
-                    return
-                  }
 
-                  if (e.target === current.cloneContainer.parentElement.parentElement && clickOutside) {
-                    clickOutside = false
-                    state.unzoom()
-                    return
-                  }
-                  
-                  dragging = false
-                  clickOutside = false
-                  lastTouchCenterX = null
-                  lastTouchCenterY = null
-                  lastTouchDistance = null
-                  if (activePointerId != null) {
-                    current.cloneContainer.releasePointerCapture(activePointerId)
-                    activePointerId = null
-                  }
+                    x += centerX - pinchLastCenterX
+                    y += centerY - pinchLastCenterY
+                    zoomAt(scale * (distance / pinchLastDistance), centerX, centerY)
 
-                  const dx = e.clientX - downX
-                  const dy = e.clientY - downY
-
-                  if (Math.abs(dx) < 3 && Math.abs(dy) < 3) {
-                    state.unzoom()
+                    pinchLastCenterX = centerX
+                    pinchLastCenterY = centerY
+                    pinchLastDistance = distance
+                    render()
                   }
                 }
               },
               {
-                target: document,
+                target: popup,
+                event: "pointerup",
+                func: e => {
+                  if (!pointers.has(e.pointerId)) return
+
+                  pointers.delete(e.pointerId)
+                  if (popup.hasPointerCapture(e.pointerId)) {
+                    popup.releasePointerCapture(e.pointerId)
+                  }
+
+                  if (!pointers.size && !tapMoved && Math.abs(e.clientX - tapStartX) < 3 && Math.abs(e.clientY - tapStartY) < 3) {
+                    const clickedClone = tapTarget?.closest?.(".popupable-clone-container") === current.cloneContainer
+                    const clickedBackground = tapTarget === popup
+                    if (clickedClone || clickedBackground) {
+                      state.unzoom()
+                      return
+                    }
+                  }
+
+                  syncGestureState()
+                }
+              },
+              {
+                target: popup,
                 event: "pointercancel",
                 func: e => {
-                  if (e.pointerType === "touch") {
-                    touchPointers.delete(e.pointerId)
-                    if (touchPointers.size) return
-                  } else if (activePointerId != null && e.pointerId !== activePointerId) {
-                    return
+                  if (!pointers.has(e.pointerId)) return
+                  pointers.delete(e.pointerId)
+                  if (popup.hasPointerCapture(e.pointerId)) {
+                    popup.releasePointerCapture(e.pointerId)
                   }
-                  dragging = false
-                  lastTouchCenterX = null
-                  lastTouchCenterY = null
-                  lastTouchDistance = null
-                  if (activePointerId != null) {
-                    current.cloneContainer.releasePointerCapture(activePointerId)
-                    activePointerId = null
-                  }
+                  syncGestureState()
                 }
               },
               {
-                target: document,
+                target: popup,
                 event: "wheel",
                 func: e => {
-                  current.cloneContainer.style.transition = "initial"
-                  const prevScale = scale
-                  const speed = 0.003
-
-                  scale = Math.min(
-                    maxScale,
-                    Math.max(minScale, scale - e.deltaY * speed)
-                  )
-
-                  if (scale === prevScale) return
-
-                  const rect = current.cloneContainer.getBoundingClientRect()
-                  const ratio = scale / prevScale
-
-                  const px = e.clientX - rect.left
-                  const py = e.clientY - rect.top
-
-                  lastX = lastX + px * (1 - ratio)
-                  lastY = lastY + py * (1 - ratio)
-
-                  current.cloneContainer.style.transform = `translate(${lastX}px, ${lastY}px) scale(${scale})`
+                  current.cloneContainer.style.transition = "none"
+                  if (zoomAt(scale * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY)) {
+                    render()
+                  }
                 },
                 args: {
                   passive: true
