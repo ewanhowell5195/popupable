@@ -111,13 +111,25 @@
   function updateExpandedSize() {
     if (!activePopup || activePopup.state === "close") return
 
-    document.documentElement.style.setProperty("--popupable-view-width", visualViewport.width + "px")
+    const viewportWidth = visualViewport?.width || window.innerWidth
+    const viewportHeight = visualViewport?.height || window.innerHeight
+    const viewportOffsetTop = visualViewport?.offsetTop || 0
+    const viewportOffsetLeft = visualViewport?.offsetLeft || 0
+    const viewportScale = visualViewport?.scale || 1
+
+    document.documentElement.style.setProperty("--popupable-view-width", viewportWidth + "px")
+    activePopup.popup.style.setProperty("--popupable-vv-width", viewportWidth + "px")
+    activePopup.popup.style.setProperty("--popupable-vv-height", viewportHeight + "px")
+    activePopup.popup.style.setProperty("--popupable-vv-top", viewportOffsetTop + "px")
+    activePopup.popup.style.setProperty("--popupable-vv-left", viewportOffsetLeft + "px")
+    activePopup.popup.style.setProperty("--popupable-vv-scale", viewportScale)
+    activePopup.popup.style.setProperty("--popupable-vv-ui-scale", 1 / viewportScale)
 
     const basePadding = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-screen-padding")) || 0
-    const padding = basePadding / visualViewport.scale
+    const padding = basePadding / viewportScale
 
-    const maxW = Math.max(0, visualViewport.width - padding * 2)
-    const maxH = visualViewport.height - padding * 2
+    const maxW = Math.max(0, viewportWidth - padding * 2)
+    const maxH = viewportHeight - padding * 2
 
     let clones
     if (activePopup.group) {
@@ -155,8 +167,8 @@
         finalW = finalH * aspect
       }
 
-      clone.cloneContainer.style.top = visualViewport.offsetTop + padding + (cloneMaxH - finalH) / 2 + "px"
-      clone.cloneContainer.style.left = visualViewport.offsetLeft + padding + (maxW - finalW) / 2 + "px"
+      clone.cloneContainer.style.top = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2 + "px"
+      clone.cloneContainer.style.left = viewportOffsetLeft + padding + (maxW - finalW) / 2 + "px"
       clone.cloneContainer.style.width = finalW + "px"
       clone.cloneContainer.style.height = finalH + "px"
     }
@@ -169,7 +181,8 @@
         active = activePopup
       }
       const rect = active.content.getBoundingClientRect()
-      activePopup.contentContainer.style.height = rect.height + "px"
+      const uiScale = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-vv-ui-scale")) || 1
+      activePopup.contentContainer.style.height = rect.height / uiScale + "px"
     }
   }
 
@@ -377,6 +390,8 @@
     if (cloneObj.id) {
       popup.id = cloneObj.id
     }
+    const viewportLayer = document.createElement("div")
+    viewportLayer.className = "popupable-viewport"
 
     const footer = document.createElement("div")
     footer.classList = "popupable-footer"
@@ -391,7 +406,7 @@
     let goNext, goPrev
 
     if (group) {
-      popup.innerHTML = `
+      viewportLayer.innerHTML = `
         <div class="popupable-prev-container${!group.currentIndex ? " popupable-disabled" : ""}">
           <div class="popupable-button popupable-nav-button popupable-prev">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
@@ -407,8 +422,8 @@
           </div>
         </div>
       `
-      const next = popup.querySelector(".popupable-next-container")
-      const prev = popup.querySelector(".popupable-prev-container")
+      const next = viewportLayer.querySelector(".popupable-next-container")
+      const prev = viewportLayer.querySelector(".popupable-prev-container")
 
       async function recalculateVisible() {
         const current = group[group.currentIndex]
@@ -544,7 +559,8 @@
         contentContainer.append(content)
       }
     }
-    popup.append(cloneList, footer)
+    viewportLayer.append(footer)
+    popup.append(cloneList, viewportLayer)
 
     Object.assign(activePopup, cloneObj, { popup, group, contentContainer, goNext, goPrev })
 
@@ -600,6 +616,7 @@
             mouseDownTarget.classList.contains("popupable-clone-container")) ||
           (e.target == mouseDownTarget &&
             (e.target.closest(".popupable-clone-container") ||
+              e.target.classList.contains("popupable-viewport") ||
               e.target.classList.contains("popupable-container"))) ||
           (e.target.classList.contains("popupable-container") &&
             mouseDownTarget === activePopup.original.parentElement)
@@ -794,7 +811,7 @@
 
                   if (!pointers.size && !tapMoved && Math.abs(e.clientX - tapStartX) < 3 && Math.abs(e.clientY - tapStartY) < 3) {
                     const clickedClone = tapTarget?.closest?.(".popupable-clone-container") === current.cloneContainer
-                    const clickedBackground = tapTarget === popup
+                    const clickedBackground = tapTarget === popup || tapTarget === viewportLayer
                     if (clickedClone || clickedBackground) {
                       state.unzoom()
                       return
@@ -870,4 +887,8 @@
   })
 
   window.addEventListener("resize", updateExpandedSize)
+  if (visualViewport) {
+    visualViewport.addEventListener("resize", updateExpandedSize)
+    visualViewport.addEventListener("scroll", updateExpandedSize)
+  }
 }
