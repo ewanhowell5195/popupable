@@ -109,7 +109,8 @@
 
     document.documentElement.style.setProperty("--popupable-view-width", visualViewport.width + "px")
 
-    const padding = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-screen-padding")) || 0
+    const basePadding = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-screen-padding")) || 0
+    const padding = basePadding / visualViewport.scale
 
     const maxW = Math.max(0, visualViewport.width - padding * 2)
     const maxH = visualViewport.height - padding * 2
