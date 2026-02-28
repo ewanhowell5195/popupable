@@ -616,8 +616,9 @@
             let scale = 2
             const minScale = 1.5
             const maxScale = 6
-            let startX, startY, downX, downY, clickOutside, pinchStartDistance, pinchStartScale
+            let startX, startY, downX, downY, clickOutside, lastTouchCenterX, lastTouchCenterY, lastTouchDistance
             let dragging = false
+            const touchPointers = new Set()
 
             const rect = current.cloneContainer.getBoundingClientRect()
             const tx = (e.clientX - rect.left) * (1 - scale)
@@ -655,6 +656,9 @@
                 event: "pointerdown",
                 func: e => {
                   if (dragging || e.button !== 0) return
+                  if (e.pointerType === "touch") {
+                    touchPointers.add(e.pointerId)
+                  }
                   dragging = true
                   current.cloneContainer.style.transition = "none"
                   startX = e.clientX - lastX
@@ -682,8 +686,15 @@
 
                   if (e.touches.length === 1) {
                     const t = e.touches[0]
+                    if (lastTouchDistance != null) {
+                      startX = t.clientX - lastX
+                      startY = t.clientY - lastY
+                    }
                     lastX = t.clientX - startX
                     lastY = t.clientY - startY
+                    lastTouchCenterX = null
+                    lastTouchCenterY = null
+                    lastTouchDistance = null
                   }
 
                   if (e.touches.length === 2) {
@@ -693,34 +704,32 @@
                     const dx = t2.clientX - t1.clientX
                     const dy = t2.clientY - t1.clientY
                     const distance = Math.hypot(dx, dy)
+                    const centerX = (t1.clientX + t2.clientX) / 2
+                    const centerY = (t1.clientY + t2.clientY) / 2
 
-                    if (!pinchStartDistance) {
-                      pinchStartDistance = distance
-                      pinchStartScale = scale
-                      return
-                    }
+                    if (lastTouchCenterX == null || lastTouchCenterY == null || lastTouchDistance == null) {
+                      lastTouchCenterX = centerX
+                      lastTouchCenterY = centerY
+                      lastTouchDistance = distance
+                    } else {
+                      lastX += centerX - lastTouchCenterX
+                      lastY += centerY - lastTouchCenterY
 
-                    const ratio = distance / pinchStartDistance
-                    const prevScale = scale
+                      const prevScale = scale
+                      scale = Math.min(maxScale, Math.max(minScale, scale * (distance / lastTouchDistance)))
 
-                    scale = Math.min(
-                      maxScale,
-                      Math.max(minScale, pinchStartScale * ratio)
-                    )
+                      if (scale !== prevScale) {
+                        const rect = current.cloneContainer.getBoundingClientRect()
+                        const px = centerX - rect.left
+                        const py = centerY - rect.top
+                        const scaleRatio = scale / prevScale
+                        lastX = lastX + px * (1 - scaleRatio)
+                        lastY = lastY + py * (1 - scaleRatio)
+                      }
 
-                    if (scale !== prevScale) {
-                      const rect = current.cloneContainer.getBoundingClientRect()
-
-                      const centerX = (t1.clientX + t2.clientX) / 2
-                      const centerY = (t1.clientY + t2.clientY) / 2
-
-                      const px = centerX - rect.left
-                      const py = centerY - rect.top
-
-                      const scaleRatio = scale / prevScale
-
-                      lastX = lastX + px * (1 - scaleRatio)
-                      lastY = lastY + py * (1 - scaleRatio)
+                      lastTouchCenterX = centerX
+                      lastTouchCenterY = centerY
+                      lastTouchDistance = distance
                     }
                   }
 
@@ -735,6 +744,14 @@
                 target: document,
                 event: "pointerup",
                 func: e => {
+                  if (e.pointerType === "touch") {
+                    touchPointers.delete(e.pointerId)
+                    if (touchPointers.size) {
+                      clickOutside = false
+                      return
+                    }
+                  }
+
                   if (e.target === current.cloneContainer.parentElement.parentElement && clickOutside) {
                     clickOutside = false
                     state.unzoom()
@@ -743,8 +760,9 @@
                   
                   dragging = false
                   clickOutside = false
-                  pinchStartDistance = null
-                  pinchStartScale = null
+                  lastTouchCenterX = null
+                  lastTouchCenterY = null
+                  lastTouchDistance = null
 
                   const dx = e.clientX - downX
                   const dy = e.clientY - downY
@@ -752,6 +770,19 @@
                   if (Math.abs(dx) < 3 && Math.abs(dy) < 3) {
                     state.unzoom()
                   }
+                }
+              },
+              {
+                target: document,
+                event: "pointercancel",
+                func: e => {
+                  if (e.pointerType !== "touch") return
+                  touchPointers.delete(e.pointerId)
+                  if (touchPointers.size) return
+                  dragging = false
+                  lastTouchCenterX = null
+                  lastTouchCenterY = null
+                  lastTouchDistance = null
                 }
               },
               {

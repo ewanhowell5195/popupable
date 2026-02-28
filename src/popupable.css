@@ -292,4 +292,5 @@
 
 .popupable-zoomed {
   cursor: zoom-out;
+  touch-action: none;
 }
