@@ -22,6 +22,14 @@
     if (keys.includes(e.key)) e.preventDefault()
   }
 
+  function setCloneToOriginalRect(cloneContainer, original) {
+    const rect = original.getBoundingClientRect()
+    cloneContainer.style.top = visualViewport.offsetTop + rect.top + "px"
+    cloneContainer.style.left = visualViewport.offsetLeft + rect.left + "px"
+    cloneContainer.style.width = rect.width + "px"
+    cloneContainer.style.height = rect.height + "px"
+  }
+
   function openPopupable(toOpen) {
     if (toOpen.state === "open") return
     toOpen.state = "open"
@@ -64,11 +72,7 @@
     popup.classList.remove("popupable-active")
     popup.classList.remove("popupable-open")
 
-    const rect = original.getBoundingClientRect()
-    cloneContainer.style.top = visualViewport.offsetTop + rect.top + "px"
-    cloneContainer.style.left = visualViewport.offsetLeft + rect.left + "px"
-    cloneContainer.style.width = rect.width + "px"
-    cloneContainer.style.height = rect.height + "px"
+    setCloneToOriginalRect(cloneContainer, original)
 
     if (group) {
       for (const [i, entry] of group.entries()) {
@@ -546,11 +550,7 @@
 
     await activePopup.ready
 
-    const rect = original.getBoundingClientRect()
-    cloneContainer.style.top = visualViewport.offsetTop + rect.top + "px"
-    cloneContainer.style.left = visualViewport.offsetLeft + rect.left + "px"
-    cloneContainer.style.width = rect.width + "px"
-    cloneContainer.style.height = rect.height + "px"
+    setCloneToOriginalRect(cloneContainer, original)
     document.body.append(popup)
     original.classList.add("popupable-hide")
     disableScroll()
