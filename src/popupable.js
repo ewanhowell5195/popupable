@@ -323,10 +323,8 @@
       if (dragging && activeTouchPointers >= 1) return
     }
 
-    let dragged
     if (dragging) {
       dragging = false
-      dragged = true
       const current = activePopup.group ? activePopup.group[activePopup.group.currentIndex] : activePopup
       current.cloneContainer.parentElement.style.transition = null
       current.cloneContainer.parentElement.style.transform = null
