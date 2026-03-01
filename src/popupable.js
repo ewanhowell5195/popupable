@@ -453,7 +453,7 @@
           const thumbnail = new Image()
           thumbnail.className = "popupable-thumbnail"
           thumbnail.src = entry.original.currentSrc ?? entry.original.src
-          thumbnail.dataset.index = i
+          thumbnail.dataset.thumbnailIndex = i
           thumbnailsContainer.append(thumbnail)
           return thumbnail
         })
@@ -656,11 +656,58 @@
       )
 
       if (thumbnailsContainer) {
-        let thumbnailsDragging
-        let thumbnailsDragMoved
-        let thumbnailsSuppressClick
-        let thumbnailsStartX
-        let thumbnailsStartScrollLeft
+        let thumbnailsDragging, thumbnailsDragMoved, thumbnailsStartX, thumbnailsStartScrollLeft, thumbnailsLastScrollLeft, thumbnailsLastAt, thumbnailsVelocity, thumbnailsMomentumRaf
+
+        function stopThumbnailsMomentum() {
+          if (thumbnailsMomentumRaf) {
+            cancelAnimationFrame(thumbnailsMomentumRaf)
+            thumbnailsMomentumRaf = null
+          }
+        }
+
+        function startThumbnailsMomentum() {
+          const startThreshold = 0.01
+          const friction = 0.8
+
+          stopThumbnailsMomentum()
+          if (Math.abs(thumbnailsVelocity) < startThreshold) return
+
+          let lastFrameAt = performance.now()
+          const step = now => {
+            if (!thumbnailsContainer.isConnected) {
+              stopThumbnailsMomentum()
+              return
+            }
+
+            const maxScroll = thumbnailsContainer.scrollWidth - thumbnailsContainer.clientWidth
+            if (maxScroll <= 0) {
+              stopThumbnailsMomentum()
+              return
+            }
+
+            const dt = Math.min(32, now - lastFrameAt)
+            lastFrameAt = now
+
+            let nextScrollLeft = thumbnailsContainer.scrollLeft + thumbnailsVelocity * dt
+            if (nextScrollLeft < 0) nextScrollLeft = 0
+            if (nextScrollLeft > maxScroll) nextScrollLeft = maxScroll
+            thumbnailsContainer.scrollLeft = nextScrollLeft
+
+            if (
+              (thumbnailsContainer.scrollLeft <= 0 && thumbnailsVelocity < 0) ||
+              (thumbnailsContainer.scrollLeft >= maxScroll && thumbnailsVelocity > 0)
+            ) {
+              stopThumbnailsMomentum()
+              return
+            }
+
+            thumbnailsVelocity *= Math.pow(friction, dt / 16.67)
+
+            thumbnailsMomentumRaf = requestAnimationFrame(step)
+          }
+
+          thumbnailsMomentumRaf = requestAnimationFrame(step)
+        }
 
         activePopup.listeners.push(
           {
@@ -668,10 +715,14 @@
             event: "pointerdown",
             func: e => {
               if (e.button !== 0) return
+              stopThumbnailsMomentum()
               thumbnailsDragging = true
               thumbnailsDragMoved = false
               thumbnailsStartX = e.clientX
               thumbnailsStartScrollLeft = thumbnailsContainer.scrollLeft
+              thumbnailsLastScrollLeft = thumbnailsContainer.scrollLeft
+              thumbnailsLastAt = performance.now()
+              thumbnailsVelocity = 0
               thumbnailsContainer.classList.add("popupable-thumbnails-dragging")
               thumbnailsContainer.setPointerCapture(e.pointerId)
             }
@@ -685,7 +736,16 @@
               if (Math.abs(deltaX) > 3) {
                 thumbnailsDragMoved = true
               }
-              thumbnailsContainer.scrollLeft = thumbnailsStartScrollLeft - deltaX
+              const now = performance.now()
+              const dt = now - thumbnailsLastAt
+              const nextScrollLeft = thumbnailsStartScrollLeft - deltaX
+              thumbnailsContainer.scrollLeft = nextScrollLeft
+              if (dt > 0) {
+                const currentVelocity = (thumbnailsContainer.scrollLeft - thumbnailsLastScrollLeft) / dt
+                thumbnailsVelocity = thumbnailsVelocity * 0.65 + currentVelocity * 0.35
+                thumbnailsLastScrollLeft = thumbnailsContainer.scrollLeft
+                thumbnailsLastAt = now
+              }
             }
           },
           {
@@ -699,7 +759,10 @@
                 thumbnailsContainer.releasePointerCapture(e.pointerId)
               }
               if (thumbnailsDragMoved) {
-                thumbnailsSuppressClick = true
+                if (performance.now() - thumbnailsLastAt > 10) {
+                  thumbnailsVelocity = 0
+                }
+                startThumbnailsMomentum()
               }
             }
           },
@@ -713,21 +776,16 @@
               if (thumbnailsContainer.hasPointerCapture(e.pointerId)) {
                 thumbnailsContainer.releasePointerCapture(e.pointerId)
               }
+              stopThumbnailsMomentum()
             }
           },
           {
             target: thumbnailsContainer,
             event: "click",
             func: e => {
-              if (thumbnailsSuppressClick) {
-                thumbnailsSuppressClick = false
-                return
-              }
-              const thumbnail = e.target.closest(".popupable-thumbnail")
+              const thumbnail = document.elementFromPoint(e.clientX, e.clientY).closest(".popupable-thumbnail")
               if (!thumbnail) return
-              const index = Number(thumbnail.dataset.index)
-              if (!Number.isInteger(index) || index < 0 || index >= group.length) return
-              group.currentIndex = index
+              group.currentIndex = Number(thumbnail.dataset.thumbnailIndex)
               recalculateVisible()
             }
           }
