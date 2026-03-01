@@ -156,7 +156,8 @@
 
       const cloneMaxH = Math.max(0, maxH)
       const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
-      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - counterHeight - padding * 2)
+      const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
+      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - thumbnailHeight - counterHeight - padding * 2)
 
       let finalW = maxW
       let finalH = finalW / aspect
@@ -185,8 +186,8 @@
       }
 
       let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
-      if (contentHeight) {
-        const maxTop = viewportOffsetTop + viewportHeight - contentHeight - padding - finalH
+      if (contentHeight || thumbnailHeight) {
+        const maxTop = viewportOffsetTop + viewportHeight - contentHeight - thumbnailHeight - padding - finalH
         finalTop = Math.min(finalTop, maxTop)
       }
       finalTop = Math.max(finalTop, viewportOffsetTop + counterHeight + padding)
@@ -281,6 +282,7 @@
       maintainAspect: original.hasAttribute("data-popupable-maintain-aspect"),
       noUpscale: original.hasAttribute("data-popupable-no-upscale"),
       counter: original.hasAttribute("data-popupable-counter"),
+      thumbnails: original.hasAttribute("data-popupable-thumbnails"),
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.complete ? Promise.resolve() : new Promise(resolve => {
           img.addEventListener("load", resolve, { once: true })
@@ -434,7 +436,7 @@
       footer.append(contentContainer)
     }
 
-    let header, counter, goNext, goPrev
+    let header, counter, thumbnailsContainer, thumbnailItems, goNext, goPrev
 
     if (group) {
       if (cloneObj.counter) {
@@ -443,6 +445,18 @@
         counter = document.createElement("div")
         counter.className = "popupable-counter"
         header.append(counter)
+      }
+      if (cloneObj.thumbnails) {
+        thumbnailsContainer = document.createElement("div")
+        thumbnailsContainer.className = "popupable-thumbnails"
+        thumbnailItems = group.map((entry, i) => {
+          const thumbnail = new Image()
+          thumbnail.className = "popupable-thumbnail"
+          thumbnail.src = entry.original.currentSrc ?? entry.original.src
+          thumbnail.dataset.index = i
+          thumbnailsContainer.append(thumbnail)
+          return thumbnail
+        })
       }
 
       viewportLayer.innerHTML = `
@@ -520,6 +534,34 @@
         }
         if (counter) {
           counter.textContent = `${group.currentIndex + 1} / ${group.length}`
+        }
+        if (thumbnailItems) {
+          for (const [i, thumbnail] of thumbnailItems.entries()) {
+            thumbnail.classList.toggle("popupable-thumbnail-active", i === group.currentIndex)
+          }
+          const activeThumbnail = thumbnailItems[group.currentIndex]
+          requestAnimationFrame(() => {
+            if (!activeThumbnail || !thumbnailsContainer?.isConnected) return
+
+            const styles = getComputedStyle(thumbnailsContainer)
+            const paddingLeft = parseFloat(styles.paddingLeft) || 0
+            const paddingRight = parseFloat(styles.paddingRight) || 0
+            const visibleLeft = thumbnailsContainer.scrollLeft + paddingLeft
+            const visibleRight = thumbnailsContainer.scrollLeft + thumbnailsContainer.clientWidth - paddingRight
+            const thumbLeft = activeThumbnail.offsetLeft
+            const thumbRight = thumbLeft + activeThumbnail.offsetWidth
+
+            let nextScrollLeft = thumbnailsContainer.scrollLeft
+            if (thumbLeft < visibleLeft) {
+              nextScrollLeft = Math.max(0, thumbLeft - paddingLeft)
+            } else if (thumbRight > visibleRight) {
+              nextScrollLeft = thumbRight - thumbnailsContainer.clientWidth + paddingRight
+            }
+
+            if (nextScrollLeft !== thumbnailsContainer.scrollLeft) {
+              thumbnailsContainer.scrollTo({ left: nextScrollLeft, behavior: "smooth" })
+            }
+          })
         }
         updateExpandedSize()
       }
@@ -613,6 +655,21 @@
         }
       )
 
+      if (thumbnailsContainer) {
+        activePopup.listeners.push({
+          target: thumbnailsContainer,
+          event: "click",
+          func: e => {
+            const thumbnail = e.target.closest(".popupable-thumbnail")
+            if (!thumbnail) return
+            const index = Number(thumbnail.dataset.index)
+            if (!Number.isInteger(index) || index < 0 || index >= group.length) return
+            group.currentIndex = index
+            recalculateVisible()
+          }
+        })
+      }
+
       if (hideNavOnInactivity) {
         activePopup.listeners.push(
           {
@@ -686,9 +743,12 @@
       viewportLayer.append(header)
     }
     viewportLayer.append(footer)
+    if (thumbnailsContainer) {
+      footer.append(thumbnailsContainer)
+    }
     popup.append(viewportLayer, cloneList)
 
-    Object.assign(activePopup, cloneObj, { popup, group, contentContainer, goNext, goPrev })
+    Object.assign(activePopup, cloneObj, { popup, group, contentContainer, thumbnailsContainer, goNext, goPrev })
 
     await activePopup.ready
 

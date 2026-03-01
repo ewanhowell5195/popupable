@@ -294,6 +294,41 @@
   position: relative;
 }
 
+.popupable-thumbnails {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  justify-content: flex-start;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.popupable-thumbnails::-webkit-scrollbar {
+  display: none;
+}
+
+.popupable-thumbnail {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  opacity: 0.65;
+  cursor: pointer;
+  transition: opacity .2s, outline-color .2s;
+  outline: 2px solid #0000;
+  outline-offset: -2px;
+  flex: 0 0 auto;
+}
+
+.popupable-thumbnail:hover {
+  opacity: 1;
+}
+
+.popupable-thumbnail.popupable-thumbnail-active {
+  opacity: 1;
+  outline-color: #fffa;
+}
+
 .popupable-content {
   grid-column: 1;
   grid-row: 1;

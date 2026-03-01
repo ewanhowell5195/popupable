@@ -79,6 +79,12 @@
         object-fit: cover;
       }
 
+      .gallery-stress-thumb {
+        width: 92px;
+        height: 92px;
+        object-fit: cover;
+      }
+
       .native-cap-thumb {
         width: 160px;
         height: 90px;
@@ -276,6 +282,154 @@
     </section>
 
     <section>
+      <h2>Gallery with thumbnails</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-thumbnails</code> to show clickable thumbnails. This set has 20 items for stress testing.</p>
+
+      <div class="row">
+        <img
+          src="https://picsum.photos/id/200/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/201/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/202/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/203/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/204/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/235/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/206/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/237/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/208/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/209/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/210/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/211/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/212/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/213/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/214/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/215/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/216/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/217/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/218/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+        <img
+          src="https://picsum.photos/id/219/1024/1024"
+          class="gallery-stress-thumb"
+          data-popupable
+          data-popupable-thumbnails
+          data-popupable-group="gallery-thumbnails"
+        >
+      </div>
+    </section>
+
+    <section>
       <h2>Titles and descriptions</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Popups can have titles and descriptions</p>
 
@@ -306,8 +460,8 @@
     </section>
 
     <section>
-      <h2>Counter with titles/descriptions</h2>
-      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Combines <code>data-popupable-counter</code> with per-image titles and descriptions.</p>
+      <h2>Counter with titles/descriptions and thumbnails</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Combines <code>data-popupable-counter</code> with per-image titles and descriptions, as well as thumbnails.</p>
 
       <div class="row">
         <img
@@ -318,6 +472,7 @@
           data-popupable-title="Example item 1"
           data-popupable-description="Generic caption text for demonstration"
           data-popupable-group="gallery-counter-content"
+          data-popupable-thumbnails
         >
         <img
           src="https://picsum.photos/id/1033/1024/1024"
@@ -327,6 +482,7 @@
           data-popupable-title="Example item 2"
           data-popupable-description="Another generic description line"
           data-popupable-group="gallery-counter-content"
+          data-popupable-thumbnails
         >
         <img
           src="https://picsum.photos/id/1035/1024/1024"
@@ -336,6 +492,7 @@
           data-popupable-title="Example item 3"
           data-popupable-description="A description that explains what is in the image"
           data-popupable-group="gallery-counter-content"
+          data-popupable-thumbnails
         >
       </div>
     </section>
