@@ -167,6 +167,20 @@
         finalH = constrainedMaxH
         finalW = finalH * aspect
       }
+      if (clone.noUpscale) {
+        const source = clone.cloneLayer || clone.original
+        const sourceW = source.naturalWidth
+        const sourceH = source.naturalHeight
+        if (sourceW && sourceH) {
+          const effectiveSourceW = sourceW / viewportScale
+          const effectiveSourceH = sourceH / viewportScale
+          const noUpscaleMultiplier = Math.min(1, effectiveSourceW / finalW, effectiveSourceH / finalH)
+          if (noUpscaleMultiplier < 1) {
+            finalW *= noUpscaleMultiplier
+            finalH *= noUpscaleMultiplier
+          }
+        }
+      }
 
       let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
       if (contentHeight) {
@@ -263,6 +277,7 @@
       clone,
       cloneLayer,
       maintainAspect: original.hasAttribute("data-popupable-maintain-aspect"),
+      noUpscale: original.hasAttribute("data-popupable-no-upscale"),
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.complete ? Promise.resolve() : new Promise(resolve => {
           img.addEventListener("load", resolve, { once: true })
