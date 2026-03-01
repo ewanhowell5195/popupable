@@ -868,7 +868,7 @@
     if (thumbnailsContainer) {
       footer.append(thumbnailsContainer)
     }
-    popup.append(viewportLayer, cloneList)
+    popup.append(cloneList, viewportLayer)
 
     Object.assign(activePopup, cloneObj, { popup, group, contentContainer, thumbnailsContainer, goNext, goPrev })
 

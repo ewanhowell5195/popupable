@@ -70,6 +70,7 @@
   height: calc(var(--popupable-vv-height, 100vh) * var(--popupable-vv-scale, 1));
   transform-origin: top left;
   transform: scale(var(--popupable-vv-ui-scale, 1));
+  pointer-events: none;
 }
 
 .popupable-container * {
@@ -187,14 +188,15 @@
   padding: 40px;
   cursor: pointer;
   z-index: 1;
+  pointer-events: auto;
 }
 
 .popupable-next-container {
-  right: calc(var(--popupable-screen-padding) - 20px);
+  right: calc(var(--popupable-screen-padding) / 2);
 }
 
 .popupable-prev-container {
-  left: calc(var(--popupable-screen-padding) - 20px);
+  left: calc(var(--popupable-screen-padding) / 2);
 }
 
 .popupable-nav-button {
@@ -202,12 +204,10 @@
 }
 
 .popupable-next {
-  right: calc(var(--popupable-screen-padding) * 1.5);
   transform: translateX(40px);
 }
 
 .popupable-prev {
-  left: calc(var(--popupable-screen-padding) * 1.5);
   transform: translateX(-40px);
 }
 
@@ -267,6 +267,7 @@
   transform: translateY(-40px);
   color: #fff;
   background: var(--popupable-ui-background);
+  pointer-events: auto;
 }
 
 .popupable-footer {
@@ -387,14 +388,6 @@
   .popupable-next-container,
   .popupable-prev-container {
     padding: 24px;
-  }
-
-  .popupable-next-container {
-    right: calc(var(--popupable-screen-padding) - 12px);
-  }
-
-  .popupable-prev-container {
-    left: calc(var(--popupable-screen-padding) - 12px);
   }
 
   .popupable-button svg {
