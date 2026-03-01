@@ -431,6 +431,24 @@
       `
       const next = viewportLayer.querySelector(".popupable-next-container")
       const prev = viewportLayer.querySelector(".popupable-prev-container")
+      let navHideTimeout
+      let navLastMoveX, navLastMoveY
+      const hideNavOnInactivity = !(navigator.maxTouchPoints > 0 || window.matchMedia("(hover: none)").matches)
+
+      const scheduleNavHide = () => {
+        if (!hideNavOnInactivity) return
+        clearTimeout(navHideTimeout)
+        navHideTimeout = setTimeout(() => {
+          next.classList.add("popupable-nav-inactive")
+          prev.classList.add("popupable-nav-inactive")
+        }, 1500)
+      }
+
+      const showNav = () => {
+        next.classList.remove("popupable-nav-inactive")
+        prev.classList.remove("popupable-nav-inactive")
+        scheduleNavHide()
+      }
 
       async function recalculateVisible() {
         const current = group[group.currentIndex]
@@ -483,6 +501,9 @@
       }
 
       recalculateVisible()
+      if (hideNavOnInactivity) {
+        scheduleNavHide()
+      }
 
       activePopup.listeners.push(
         {
@@ -555,6 +576,30 @@
           }
         }
       )
+
+      if (hideNavOnInactivity) {
+        activePopup.listeners.push({
+          target: popup,
+          event: "pointermove",
+          func: e => {
+            if (activePopup.state === "zoomed") return
+            if (navLastMoveX == null || navLastMoveY == null) {
+              navLastMoveX = e.clientX
+              navLastMoveY = e.clientY
+              return
+            }
+            if (Math.abs(e.clientX - navLastMoveX) < 3 && Math.abs(e.clientY - navLastMoveY) < 3) {
+              return
+            }
+            navLastMoveX = e.clientX
+            navLastMoveY = e.clientY
+            showNav()
+          },
+          args: {
+            passive: true
+          }
+        })
+      }
 
       for (const clone of group) {
         if (clone.content) {
