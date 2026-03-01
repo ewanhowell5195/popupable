@@ -144,30 +144,40 @@
 }
 
 .popupable-button {
-  background: #0004;
-  border-radius: 50%;
   width: 40px;
   height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background .25s, opacity var(--popupable-open-duration), transform var(--popupable-open-duration);
+  transition: opacity var(--popupable-open-duration), transform var(--popupable-open-duration);
   cursor: pointer;
+  position: relative;
+}
+
+.popupable-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.5;
+  background: var(--popupable-ui-background);
+  transition: opacity .25s;
+  border-radius: 50%;
 }
 
 .popupable-button svg {
   width: 24px;
   height: 24px;
+  z-index: 1;
 }
 
 .popupable-container.popupable-open .popupable-button {
   transition: background .25s, opacity var(--popupable-open-duration), transform .25s;
 }
 
-.popupable-button:hover,
-.popupable-next-container:hover .popupable-button,
-.popupable-prev-container:hover .popupable-button {
-  background: var(--popupable-ui-background);
+.popupable-button:hover::before,
+.popupable-next-container:hover .popupable-button::before,
+.popupable-prev-container:hover .popupable-button::before {
+  opacity: 1;
 }
 
 .popupable-next-container,
