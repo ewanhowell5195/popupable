@@ -93,7 +93,6 @@
   overflow: hidden;
   transform: translateX(calc(var(--popupable-view-width) * var(--popupable-offset-multiplier)));
   transform-origin: 0 0;
-  z-index: 1;
 }
 
 .popupable-clone-container.popupable-transparent::before {

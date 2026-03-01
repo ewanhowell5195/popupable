@@ -305,6 +305,7 @@
     }
 
     if (dragging || activePopup?.state !== "open") return
+    if (e.target.closest(".popupable-header, .popupable-footer")) return
     dragging = true
     downX = e.clientX
   })
@@ -685,7 +686,7 @@
       viewportLayer.append(header)
     }
     viewportLayer.append(footer)
-    popup.append(cloneList, viewportLayer)
+    popup.append(viewportLayer, cloneList)
 
     Object.assign(activePopup, cloneObj, { popup, group, contentContainer, goNext, goPrev })
 
