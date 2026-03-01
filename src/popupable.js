@@ -131,6 +131,8 @@
 
     const maxW = Math.max(0, viewportWidth - padding * 2)
     const maxH = viewportHeight - padding * 2
+    const counter = activePopup.popup.querySelector(".popupable-counter")
+    const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
 
     let clones
     if (activePopup.group) {
@@ -154,7 +156,7 @@
 
       const cloneMaxH = Math.max(0, maxH)
       const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
-      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - padding * 2)
+      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - counterHeight - padding * 2)
 
       let finalW = maxW
       let finalH = finalW / aspect
@@ -187,7 +189,7 @@
         const maxTop = viewportOffsetTop + viewportHeight - contentHeight - padding - finalH
         finalTop = Math.min(finalTop, maxTop)
       }
-      finalTop = Math.max(finalTop, viewportOffsetTop + padding)
+      finalTop = Math.max(finalTop, viewportOffsetTop + counterHeight + padding)
 
       clone.cloneContainer.style.top = finalTop + "px"
       clone.cloneContainer.style.left = viewportOffsetLeft + padding + (maxW - finalW) / 2 + "px"
@@ -278,6 +280,7 @@
       cloneLayer,
       maintainAspect: original.hasAttribute("data-popupable-maintain-aspect"),
       noUpscale: original.hasAttribute("data-popupable-no-upscale"),
+      counter: original.hasAttribute("data-popupable-counter"),
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.complete ? Promise.resolve() : new Promise(resolve => {
           img.addEventListener("load", resolve, { once: true })
@@ -430,9 +433,17 @@
       footer.append(contentContainer)
     }
 
-    let goNext, goPrev
+    let header, counter, goNext, goPrev
 
     if (group) {
+      if (cloneObj.counter) {
+        header = document.createElement("div")
+        header.className = "popupable-header"
+        counter = document.createElement("div")
+        counter.className = "popupable-counter"
+        header.append(counter)
+      }
+
       viewportLayer.innerHTML = `
         <div class="popupable-prev-container${!group.currentIndex ? " popupable-disabled" : ""}">
           <div class="popupable-button popupable-nav-button popupable-prev">
@@ -504,6 +515,9 @@
           popup.id = current.id
         } else {
           popup.removeAttribute("id")
+        }
+        if (counter) {
+          counter.textContent = `${group.currentIndex + 1} / ${group.length}`
         }
         updateExpandedSize()
       }
@@ -630,6 +644,9 @@
       if (content) {
         contentContainer.append(content)
       }
+    }
+    if (header) {
+      viewportLayer.append(header)
     }
     viewportLayer.append(footer)
     popup.append(cloneList, viewportLayer)
