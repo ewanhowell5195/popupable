@@ -346,13 +346,20 @@
       }
     }
 
+    const allowViewportRelease = e.target.closest(".popupable-viewport") && !mouseDownTarget.closest(".popupable-viewport")
+
     if (
-      (e.target != mouseDownTarget &&
+      (!allowViewportRelease &&
+        e.target != mouseDownTarget &&
         !(mouseDownTarget.classList.contains("popupable-clone-container") &&
           e.target === previousPopup?.original))
     ) return
-    const original = e.target.closest("[data-popupable]")
+    const original = (allowViewportRelease ? mouseDownTarget.closest("[data-popupable]") : null) || e.target.closest("[data-popupable]")
     if (!original) {
+      if (allowViewportRelease) {
+        closePopupable()
+        return
+      }
       if (e.target.closest(".popupable-container")) {
         return
       }
