@@ -124,6 +124,7 @@
     activePopup.popup.style.setProperty("--popupable-vv-left", viewportOffsetLeft + "px")
     activePopup.popup.style.setProperty("--popupable-vv-scale", viewportScale)
     activePopup.popup.style.setProperty("--popupable-vv-ui-scale", 1 / viewportScale)
+    const uiScale = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-vv-ui-scale")) || 1
 
     const basePadding = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-screen-padding")) || 0
     const padding = basePadding / viewportScale
@@ -151,13 +152,9 @@
         }
       }
 
-      let cloneMaxH = maxH
-
-      if (clone.content) {
-        cloneMaxH -= clone.content.getBoundingClientRect().height
-      }
-
-      cloneMaxH = Math.max(0, cloneMaxH)
+      const cloneMaxH = Math.max(0, maxH)
+      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
+      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - padding * 2)
 
       let finalW = maxW
       let finalH = finalW / aspect
@@ -166,8 +163,19 @@
         finalH = cloneMaxH
         finalW = finalH * aspect
       }
+      if (finalH > constrainedMaxH) {
+        finalH = constrainedMaxH
+        finalW = finalH * aspect
+      }
 
-      clone.cloneContainer.style.top = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2 + "px"
+      let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
+      if (contentHeight) {
+        const maxTop = viewportOffsetTop + viewportHeight - contentHeight - padding - finalH
+        finalTop = Math.min(finalTop, maxTop)
+      }
+      finalTop = Math.max(finalTop, viewportOffsetTop + padding)
+
+      clone.cloneContainer.style.top = finalTop + "px"
       clone.cloneContainer.style.left = viewportOffsetLeft + padding + (maxW - finalW) / 2 + "px"
       clone.cloneContainer.style.width = finalW + "px"
       clone.cloneContainer.style.height = finalH + "px"
@@ -181,7 +189,6 @@
         active = activePopup
       }
       const rect = active.content.getBoundingClientRect()
-      const uiScale = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-vv-ui-scale")) || 1
       activePopup.contentContainer.style.height = rect.height / uiScale + "px"
     }
   }
