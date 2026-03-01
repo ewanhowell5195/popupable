@@ -672,7 +672,9 @@
 
         function startThumbnailsMomentum() {
           const startThreshold = 0.01
+          const stopThreshold = 0.002
           const friction = 0.8
+          const edgeEpsilon = 0.1
 
           stopThumbnailsMomentum()
           if (Math.abs(thumbnailsVelocity) < startThreshold) return
@@ -699,14 +701,18 @@
             thumbnailsContainer.scrollLeft = nextScrollLeft
 
             if (
-              (thumbnailsContainer.scrollLeft <= 0 && thumbnailsVelocity < 0) ||
-              (thumbnailsContainer.scrollLeft >= maxScroll && thumbnailsVelocity > 0)
+              (thumbnailsContainer.scrollLeft <= edgeEpsilon && thumbnailsVelocity < 0) ||
+              (thumbnailsContainer.scrollLeft >= maxScroll - edgeEpsilon && thumbnailsVelocity > 0)
             ) {
               stopThumbnailsMomentum()
               return
             }
 
             thumbnailsVelocity *= Math.pow(friction, dt / 16.67)
+            if (Math.abs(thumbnailsVelocity) <= stopThreshold) {
+              stopThumbnailsMomentum()
+              return
+            }
 
             thumbnailsMomentumRaf = requestAnimationFrame(step)
           }
@@ -797,6 +803,32 @@
               if (!thumbnail) return
               group.currentIndex = Number(thumbnail.dataset.thumbnailIndex)
               recalculateVisible()
+            }
+          },
+          {
+            target: thumbnailsContainer,
+            event: "wheel",
+            func: e => {
+              e.stopPropagation()
+              e.preventDefault()
+              const maxScroll = thumbnailsContainer.scrollWidth - thumbnailsContainer.clientWidth
+              if (maxScroll <= 0) return
+
+              const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY
+              const atStart = thumbnailsContainer.scrollLeft <= 0.1
+              const atEnd = thumbnailsContainer.scrollLeft >= maxScroll - 0.1
+              if ((atStart && delta < 0) || (atEnd && delta > 0)) return
+              if (atStart && delta > 0 && thumbnailsVelocity < 0) thumbnailsVelocity = 0
+              if (atEnd && delta < 0 && thumbnailsVelocity > 0) thumbnailsVelocity = 0
+
+              const impulse = delta * 0.015
+              thumbnailsVelocity = (thumbnailsVelocity || 0) + impulse
+              if (!thumbnailsMomentumRaf) {
+                startThumbnailsMomentum()
+              }
+            },
+            args: {
+              passive: false
             }
           }
         )
