@@ -436,7 +436,7 @@
       footer.append(contentContainer)
     }
 
-    let header, counter, thumbnailsContainer, thumbnailItems, goNext, goPrev
+    let header, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev
 
     if (group) {
       if (cloneObj.counter) {
@@ -559,8 +559,13 @@
             }
 
             if (nextScrollLeft !== thumbnailsContainer.scrollLeft) {
-              thumbnailsContainer.scrollTo({ left: nextScrollLeft, behavior: "smooth" })
+              if (hasPositionedThumbnails) {
+                thumbnailsContainer.scrollTo({ left: nextScrollLeft, behavior: "smooth" })
+              } else {
+                thumbnailsContainer.scrollLeft = nextScrollLeft
+              }
             }
+            hasPositionedThumbnails = true
           })
         }
         updateExpandedSize()

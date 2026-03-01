@@ -299,7 +299,7 @@
   display: flex;
   gap: 10px;
   padding: 10px;
-  justify-content: flex-start;
+  justify-content: safe center;
   overflow: hidden;
   scrollbar-width: none;
   touch-action: pan-x;
