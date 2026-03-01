@@ -462,14 +462,15 @@
       `
       const next = viewportLayer.querySelector(".popupable-next-container")
       const prev = viewportLayer.querySelector(".popupable-prev-container")
-      let navHideTimeout
-      let navLastMoveX, navLastMoveY
+      let navHideTimeout, navLastMoveX, navLastMoveY, navHovered
       const hideNavOnInactivity = !(navigator.maxTouchPoints > 0 || window.matchMedia("(hover: none)").matches)
 
       const scheduleNavHide = () => {
         if (!hideNavOnInactivity) return
         clearTimeout(navHideTimeout)
+        if (navHovered) return
         navHideTimeout = setTimeout(() => {
+          if (navHovered) return
           next.classList.add("popupable-nav-inactive")
           prev.classList.add("popupable-nav-inactive")
         }, 1500)
@@ -612,6 +613,41 @@
       )
 
       if (hideNavOnInactivity) {
+        activePopup.listeners.push(
+          {
+            target: next,
+            event: "pointerenter",
+            func: () => {
+              navHovered = true
+              showNav()
+            }
+          },
+          {
+            target: prev,
+            event: "pointerenter",
+            func: () => {
+              navHovered = true
+              showNav()
+            }
+          },
+          {
+            target: next,
+            event: "pointerleave",
+            func: () => {
+              navHovered = false
+              scheduleNavHide()
+            }
+          },
+          {
+            target: prev,
+            event: "pointerleave",
+            func: () => {
+              navHovered = false
+              scheduleNavHide()
+            }
+          }
+        )
+
         activePopup.listeners.push({
           target: popup,
           event: "pointermove",
@@ -978,6 +1014,5 @@
   window.addEventListener("resize", updateExpandedSize)
   if (visualViewport) {
     visualViewport.addEventListener("resize", updateExpandedSize)
-    visualViewport.addEventListener("scroll", updateExpandedSize)
   }
 }
