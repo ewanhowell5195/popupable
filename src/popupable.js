@@ -656,18 +656,82 @@
       )
 
       if (thumbnailsContainer) {
-        activePopup.listeners.push({
-          target: thumbnailsContainer,
-          event: "click",
-          func: e => {
-            const thumbnail = e.target.closest(".popupable-thumbnail")
-            if (!thumbnail) return
-            const index = Number(thumbnail.dataset.index)
-            if (!Number.isInteger(index) || index < 0 || index >= group.length) return
-            group.currentIndex = index
-            recalculateVisible()
+        let thumbnailsDragging
+        let thumbnailsDragMoved
+        let thumbnailsSuppressClick
+        let thumbnailsStartX
+        let thumbnailsStartScrollLeft
+
+        activePopup.listeners.push(
+          {
+            target: thumbnailsContainer,
+            event: "pointerdown",
+            func: e => {
+              if (e.button !== 0) return
+              thumbnailsDragging = true
+              thumbnailsDragMoved = false
+              thumbnailsStartX = e.clientX
+              thumbnailsStartScrollLeft = thumbnailsContainer.scrollLeft
+              thumbnailsContainer.classList.add("popupable-thumbnails-dragging")
+              thumbnailsContainer.setPointerCapture(e.pointerId)
+            }
+          },
+          {
+            target: thumbnailsContainer,
+            event: "pointermove",
+            func: e => {
+              if (!thumbnailsDragging) return
+              const deltaX = e.clientX - thumbnailsStartX
+              if (Math.abs(deltaX) > 3) {
+                thumbnailsDragMoved = true
+              }
+              thumbnailsContainer.scrollLeft = thumbnailsStartScrollLeft - deltaX
+            }
+          },
+          {
+            target: thumbnailsContainer,
+            event: "pointerup",
+            func: e => {
+              if (!thumbnailsDragging) return
+              thumbnailsDragging = false
+              thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              if (thumbnailsContainer.hasPointerCapture(e.pointerId)) {
+                thumbnailsContainer.releasePointerCapture(e.pointerId)
+              }
+              if (thumbnailsDragMoved) {
+                thumbnailsSuppressClick = true
+              }
+            }
+          },
+          {
+            target: thumbnailsContainer,
+            event: "pointercancel",
+            func: e => {
+              if (!thumbnailsDragging) return
+              thumbnailsDragging = false
+              thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              if (thumbnailsContainer.hasPointerCapture(e.pointerId)) {
+                thumbnailsContainer.releasePointerCapture(e.pointerId)
+              }
+            }
+          },
+          {
+            target: thumbnailsContainer,
+            event: "click",
+            func: e => {
+              if (thumbnailsSuppressClick) {
+                thumbnailsSuppressClick = false
+                return
+              }
+              const thumbnail = e.target.closest(".popupable-thumbnail")
+              if (!thumbnail) return
+              const index = Number(thumbnail.dataset.index)
+              if (!Number.isInteger(index) || index < 0 || index >= group.length) return
+              group.currentIndex = index
+              recalculateVisible()
+            }
           }
-        })
+        )
       }
 
       if (hideNavOnInactivity) {

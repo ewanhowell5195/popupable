@@ -296,16 +296,16 @@
 
 .popupable-thumbnails {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   padding: 10px;
   justify-content: flex-start;
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: hidden;
   scrollbar-width: none;
+  touch-action: pan-x;
 }
 
-.popupable-thumbnails::-webkit-scrollbar {
-  display: none;
+.popupable-thumbnails.popupable-thumbnails-dragging {
+  cursor: grabbing;
 }
 
 .popupable-thumbnail {
