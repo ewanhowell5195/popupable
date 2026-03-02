@@ -769,6 +769,8 @@
             event: "pointerdown",
             func: e => {
               if (e.button !== 0) return
+              const maxScroll = thumbnailsContainer.scrollWidth - thumbnailsContainer.clientWidth
+              if (maxScroll <= 0) return
               stopThumbnailsMomentum()
               thumbnailsDragging = true
               thumbnailsDragMoved = false
