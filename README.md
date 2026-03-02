@@ -6,6 +6,8 @@ Just add `data-popupable` to any image!
 [![npm version](https://badge.fury.io/js/popupable.svg)](https://www.npmjs.com/package/popupable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
+[**Live Demo**](https://popupable.ewanhowell.com/)
+
 ## Features
 
 * No dependencies
