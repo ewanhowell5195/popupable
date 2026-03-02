@@ -133,7 +133,6 @@
     const maxH = viewportHeight - padding * 2
     const counter = activePopup.popup.querySelector(".popupable-counter")
     const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
-    const orderPlacement = activePopup.orderPlacement || {}
 
     let clones
     if (activePopup.group) {
@@ -158,14 +157,8 @@
       const cloneMaxH = Math.max(0, maxH)
       const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
       const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
-      const topReserved =
-        (orderPlacement.counterTop ? counterHeight : 0) +
-        (orderPlacement.contentTop ? contentHeight : 0) +
-        (orderPlacement.thumbnailsTop ? thumbnailHeight : 0)
-      const bottomReserved =
-        (orderPlacement.counterBottom ? counterHeight : 0) +
-        (orderPlacement.contentBottom ? contentHeight : 0) +
-        (orderPlacement.thumbnailsBottom ? thumbnailHeight : 0)
+      const topReserved = (activePopup.orderPlacement.counterTop ? counterHeight : 0) + (activePopup.orderPlacement.contentTop ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsTop ? thumbnailHeight : 0)
+      const bottomReserved = (activePopup.orderPlacement.counterBottom ? counterHeight : 0) + (activePopup.orderPlacement.contentBottom ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsBottom ? thumbnailHeight : 0)
       const constrainedMaxH = Math.max(0, viewportHeight - topReserved - bottomReserved - padding * 2)
 
       let finalW = maxW
@@ -218,34 +211,29 @@
   }
 
   function parsePopupableOrder(value) {
-    if (!value) return null
+    const defaultOrder = ["counter", "image", "content", "thumbnails"]
+    const allowed = new Set(defaultOrder)
+    const order = []
 
-    const parts = value
-      .split(",")
-      .map(part => part.trim().toLowerCase())
-      .filter(Boolean)
-
-    const imageIndex = parts.indexOf("image")
-    if (imageIndex === -1) return null
-
-    const top = []
-    const bottom = []
-
-    for (let i = 0; i < imageIndex; i++) {
-      const token = parts[i]
-      if (token === "counter" || token === "content" || token === "thumbnails") {
-        if (!top.includes(token)) top.push(token)
+    if (value) {
+      for (const part of value.split(",")) {
+        const token = part.trim().toLowerCase()
+        if (!token || !allowed.has(token) || order.includes(token)) continue
+        order.push(token)
       }
     }
 
-    for (let i = imageIndex + 1; i < parts.length; i++) {
-      const token = parts[i]
-      if (token === "counter" || token === "content" || token === "thumbnails") {
-        if (!bottom.includes(token)) bottom.push(token)
+    for (const token of defaultOrder) {
+      if (!order.includes(token)) {
+        order.push(token)
       }
     }
 
-    return { top, bottom }
+    const imageIndex = order.indexOf("image")
+    return {
+      top: order.slice(0, imageIndex),
+      bottom: order.slice(imageIndex + 1)
+    }
   }
 
   function cloneElement(original) {
@@ -472,14 +460,7 @@
     }
 
     let header, footer, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt
-    let orderPlacement = {
-      counterTop: false,
-      counterBottom: false,
-      contentTop: false,
-      contentBottom: false,
-      thumbnailsTop: false,
-      thumbnailsBottom: false
-    }
+    const orderPlacement = {}
 
     if (group) {
       if (cloneObj.counter) {
@@ -523,7 +504,7 @@
       let navHideTimeout, navLastMoveX, navLastMoveY, navHovered
       const hideNavOnInactivity = !(navigator.maxTouchPoints > 0 || window.matchMedia("(hover: none)").matches)
 
-      const scheduleNavHide = () => {
+      function scheduleNavHide() {
         if (!hideNavOnInactivity) return
         clearTimeout(navHideTimeout)
         if (navHovered) return
@@ -534,7 +515,7 @@
         }, 1500)
       }
 
-      const showNav = () => {
+      function showNav() {
         next.classList.remove("popupable-nav-inactive")
         prev.classList.remove("popupable-nav-inactive")
         scheduleNavHide()
@@ -727,7 +708,7 @@
           if (Math.abs(thumbnailsVelocity) < startThreshold) return
 
           let lastFrameAt = performance.now()
-          const step = now => {
+          function step(now) {
             if (!thumbnailsContainer.isConnected) {
               stopThumbnailsMomentum()
               return
@@ -957,25 +938,8 @@
       thumbnails: !!thumbnailsContainer
     }
 
-    let topOrder
-    let bottomOrder
-
-    if (cloneObj.order) {
-      topOrder = cloneObj.order.top.filter(token => enabledOrderItems[token])
-      bottomOrder = cloneObj.order.bottom.filter(token => enabledOrderItems[token])
-
-      for (const token of ["counter", "content", "thumbnails"]) {
-        if (!enabledOrderItems[token]) continue
-        if (!topOrder.includes(token) && !bottomOrder.includes(token)) {
-          bottomOrder.push(token)
-        }
-      }
-    } else {
-      topOrder = enabledOrderItems.counter ? ["counter"] : []
-      bottomOrder = []
-      if (enabledOrderItems.content) bottomOrder.push("content")
-      if (enabledOrderItems.thumbnails) bottomOrder.push("thumbnails")
-    }
+    const topOrder = cloneObj.order.top.filter(token => enabledOrderItems[token])
+    const bottomOrder = cloneObj.order.bottom.filter(token => enabledOrderItems[token])
 
     if (topOrder.length) {
       header = document.createElement("div")
@@ -987,7 +951,7 @@
       footer.className = "popupable-footer"
     }
 
-    const appendOrderedUiItem = (container, token) => {
+    function appendOrderedUiItem(container, token) {
       if (!container) return
       if (token === "counter" && counter) {
         orderPlacement[container === header ? "counterTop" : "counterBottom"] = true
