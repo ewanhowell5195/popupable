@@ -27,15 +27,13 @@ Just add `data-popupable` to any image!
 npm install popupable
 ```
 
-### Or use via CDN
-https://www.jsdelivr.com/package/npm/popupable
-
-### Import
-
 ```js
 import "popupable/styles.css"
 import "popupable"
 ```
+
+### Or use via CDN
+https://www.jsdelivr.com/package/npm/popupable
 
 ### Add popups to your images
 

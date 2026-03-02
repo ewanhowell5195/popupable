@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>popupable</title>
+  <link rel="icon" type="image/webp" sizes="16x16" href="https://ewanhowell.com/assets/images/logo/logo_16.webp">
+  <link rel="icon" type="image/webp" sizes="32x32" href="https://ewanhowell.com/assets/images/logo/logo_32.webp">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="popupable">
+  <meta property="og:description" content="A lightweight, zero-dependency lightbox library using modern JavaScript and CSS. Just add &quot;data-popupable&quot; to any image!">
+  <link href="https://cdn.jsdelivr.net/npm/popupable/dist/popupable.min.css" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      background: #f5f5f5;
+      font-size: 16px;
+    }
+
+    header {
+      background: #2c3e50;
+      color: white;
+      padding: 40px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    .header-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .header-links a {
+      color: white;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 8px 16px;
+      border: 1px solid white;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .header-links a:hover {
+      background: white;
+      color: #2c3e50;
+    }
+
+    .container {
+      max-width: 1024px;
+      margin: 0 auto;
+      overflow: hidden;
+    }
+
+    .content {
+      padding: 40px;
+    }
+
+    .section {
+      margin-bottom: 50px;
+    }
+
+    .section h2 {
+      font-size: 1.5rem;
+      color: #2c3e50;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #3498db;
+    }
+
+    .section p {
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.7;
+    }
+
+    code {
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      padding: 0.1em 0.3em;
+    }
+
+    pre {
+      background: #2c3e50;
+      color: #ecf0f1;
+      padding: 15px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      line-height: 1.4;
+      margin-top: 20px;
+    }
+
+    .feature-list {
+      list-style: none;
+      margin: 20px 0;
+    }
+
+    .feature-list li {
+      padding: 2px 0;
+      padding-left: 25px;
+      position: relative;
+      color: #555;
+    }
+
+    .feature-list li:first-child {
+      padding-top: 0;
+    }
+
+    .feature-list li:last-child {
+      padding-bottom: 0;
+    }
+
+    .feature-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #27ae60;
+      font-weight: bold;
+    }
+
+    .image-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .image-grid img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+    }
+
+    .image-grid img.square {
+      aspect-ratio: 1;
+      object-fit: contain;
+    }
+
+    #gallery2-1.popupable-active { background: #0A4446BB; }
+    #gallery2-2.popupable-active { background: #877E75BB; }
+    #gallery2-3.popupable-active { background: #45511FBB; }
+    #gallery2-4.popupable-active { background: #A00D3CBB; }
+
+    .aspect-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin: 20px 0;
+    }
+
+    .aspect-row figure {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .aspect-row figcaption {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+    }
+
+    .frame {
+      height: 240px;
+      aspect-ratio: 9 / 16;
+      display: block;
+      border-radius: 6px;
+    }
+
+    .frame.cover {
+      object-fit: cover;
+    }
+
+    .frame.contain {
+      object-fit: contain;
+      background: #d8d8d8;
+    }
+
+    footer {
+      background: #f0f0f0;
+      padding: 20px 40px;
+      text-align: center;
+      color: #666;
+      font-size: 0.9rem;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    footer a {
+      color: #3498db;
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    li {
+      list-style-position: inside;
+    }
+
+    @media (max-width: 600px) {
+      header h1 {
+        font-size: 1.8rem;
+      }
+
+      .content {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>popupable</h1>
+    <p>A lightweight, zero-dependency lightbox library using modern JavaScript and CSS.</p>
+    <p>Just add <code>data-popupable</code> to any image!</p>
+    <div class="header-links">
+      <a href="https://github.com/ewanhowell5195/popupable" target="_blank">GitHub</a>
+      <a href="https://www.npmjs.com/package/popupable" target="_blank">NPM</a>
+      <a href="https://www.jsdelivr.com/package/npm/popupable" target="_blank">JSDelivr</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="content">
+
+      <div class="section">
+        <h2>Features</h2>
+        <ul class="feature-list">
+          <li>No dependencies</li>
+          <li>Animates open from the element's original position</li>
+          <li>Works with mouse, touch, and keyboard</li>
+          <li>Gallery groups with swipe, scroll, keyboard, and button navigation</li>
+          <li>Thumbnail strip and image counter</li>
+          <li>Pinch-to-zoom on touch, with optional click/tap-to-zoom support</li>
+          <li>Load a hi-res image on open</li>
+          <li>Checkerboard background for transparent images</li>
+          <li>Customizable via CSS variables</li>
+        </ul>
+      </div>
+
+      <div class="section">
+        <h2>Basic Usage</h2>
+        <p>Add <code>data-popupable</code> to any image. Click an image to open it:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/10/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/10/1600/1200">
+          <img src="https://picsum.photos/id/11/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/11/1600/1200">
+          <img src="https://picsum.photos/id/12/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/12/1600/1200">
+          <img src="https://picsum.photos/id/13/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/13/1600/1200">
+        </div>
+        <pre>&lt;img src="photo.jpg" data-popupable&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Title &amp; Description</h2>
+        <p>Add <code>data-popupable-title</code> and <code>data-popupable-description</code> to show text alongside the opened image:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/15/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/15/1600/1200"
+               data-popupable-title="Mountain Lake"
+               data-popupable-description="A serene lake nestled in the mountains">
+          <img src="https://picsum.photos/id/16/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/16/1600/1200"
+               data-popupable-title="Forest Path"
+               data-popupable-description="A winding path through ancient trees">
+          <img src="https://picsum.photos/id/17/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/17/1600/1200"
+               data-popupable-title="Coastal View"
+               data-popupable-description="Rocky cliffs overlooking the ocean">
+          <img src="https://picsum.photos/id/18/400/300" data-popupable
+               data-popupable-src="https://picsum.photos/id/18/1600/1200"
+               data-popupable-title="Desert Dunes"
+               data-popupable-description="Sweeping sand dunes under a clear sky">
+        </div>
+        <pre>&lt;img src="photo.jpg" data-popupable
+     data-popupable-title="Mountain Lake"
+     data-popupable-description="A serene lake nestled in the mountains"&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Hi-res Source</h2>
+        <p>Use <code>data-popupable-src</code> to show a higher resolution image when opened. The thumbnail loads quickly, and the full image is revealed when expanded:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/20/200/150" data-popupable
+               data-popupable-src="https://picsum.photos/id/20/1600/1200"
+               data-popupable-title="Full Resolution"
+               data-popupable-description="Opens at 1600×1200">
+          <img src="https://picsum.photos/id/21/200/150" data-popupable
+               data-popupable-src="https://picsum.photos/id/21/1600/1200"
+               data-popupable-title="Full Resolution"
+               data-popupable-description="Opens at 1600×1200">
+          <img src="https://picsum.photos/id/22/200/150" data-popupable
+               data-popupable-src="https://picsum.photos/id/22/1600/1200"
+               data-popupable-title="Full Resolution"
+               data-popupable-description="Opens at 1600×1200">
+          <img src="https://picsum.photos/id/23/200/150" data-popupable
+               data-popupable-src="https://picsum.photos/id/23/1600/1200"
+               data-popupable-title="Full Resolution"
+               data-popupable-description="Opens at 1600×1200">
+        </div>
+        <pre>&lt;img src="thumbnail.jpg" data-popupable
+     data-popupable-src="full-res.jpg"&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Zoom</h2>
+        <p>All images support pinch-to-zoom on touch. Add <code>data-popupable-zoomable</code> to also enable click/tap-to-zoom and scroll wheel zoom. When zoomed, pan by dragging:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/25/400/300" data-popupable data-popupable-zoomable
+               data-popupable-src="https://picsum.photos/id/25/1600/1200"
+               data-popupable-title="Zoomable"
+               data-popupable-description="Click to zoom · Scroll to adjust · Drag to pan">
+          <img src="https://picsum.photos/id/26/400/300" data-popupable data-popupable-zoomable
+               data-popupable-src="https://picsum.photos/id/26/1600/1200"
+               data-popupable-title="Zoomable"
+               data-popupable-description="Click to zoom · Scroll to adjust · Drag to pan">
+          <img src="https://picsum.photos/id/27/400/300" data-popupable data-popupable-zoomable
+               data-popupable-src="https://picsum.photos/id/27/1600/1200"
+               data-popupable-title="Zoomable"
+               data-popupable-description="Click to zoom · Scroll to adjust · Drag to pan">
+          <img src="https://picsum.photos/id/28/400/300" data-popupable data-popupable-zoomable
+               data-popupable-src="https://picsum.photos/id/28/1600/1200"
+               data-popupable-title="Zoomable"
+               data-popupable-description="Click to zoom · Scroll to adjust · Drag to pan">
+        </div>
+        <pre>&lt;img src="photo.jpg" data-popupable data-popupable-zoomable&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Transparent Images</h2>
+        <p>Add <code>data-popupable-transparent</code> to show a checkerboard pattern behind transparent areas:</p>
+        <div class="image-grid">
+          <img class="square" data-popupable data-popupable-transparent data-popupable-title="Star"
+               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpolygon points='100,20 122,70 178,70 133,105 150,155 100,122 50,155 67,105 22,70 78,70' fill='%23e74c3c'/%3E%3C/svg%3E">
+          <img class="square" data-popupable data-popupable-transparent data-popupable-title="Diamond"
+               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpolygon points='100,10 190,80 100,190 10,80' fill='%233498db'/%3E%3Cpolygon points='100,10 190,80 100,125 10,80' fill='%232471a3'/%3E%3C/svg%3E">
+          <img class="square" data-popupable data-popupable-transparent data-popupable-title="Heart"
+               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpath d='M100 168 C55 138 15 106 15 70 C15 43 36 22 63 22 C79 22 94 30 100 42 C106 30 121 22 137 22 C164 22 185 43 185 70 C185 106 145 138 100 168Z' fill='%23e91e8c'/%3E%3C/svg%3E">
+          <img class="square" data-popupable data-popupable-transparent data-popupable-title="Lightning"
+               src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cpolygon points='115,20 60,110 95,110 85,180 140,90 105,90' fill='%23f39c12'/%3E%3C/svg%3E">
+        </div>
+        <pre>&lt;img src="icon.png" data-popupable data-popupable-transparent&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Aspect Ratio</h2>
+        <p>By default, the popup size is based on the image's natural dimensions. Add <code>data-popupable-maintain-aspect</code> to use the element's rendered aspect ratio instead — useful when the image is cropped or stretched via CSS. Toggle the checkbox to see the difference:</p>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; margin-bottom: 4px;">
+          <input type="checkbox" id="maintain-aspect-toggle"> Maintain aspect ratio
+        </label>
+        <div class="aspect-row">
+          <figure>
+            <img src="https://picsum.photos/id/1015/1920/1080" class="frame cover" data-popupable data-popupable-title="Cover (cropped)">
+            <figcaption>Cover (cropped)</figcaption>
+          </figure>
+          <figure>
+            <img src="https://picsum.photos/id/1043/1920/1080" class="frame contain" data-popupable data-popupable-title="Contain (bounds visible)">
+            <figcaption>Contain (bounds visible)</figcaption>
+          </figure>
+          <figure>
+            <img src="https://picsum.photos/id/1044/1920/1080" class="frame" data-popupable data-popupable-title="Stretch (distorted)">
+            <figcaption>Stretch (distorted)</figcaption>
+          </figure>
+        </div>
+        <pre>&lt;img src="photo.jpg" data-popupable data-popupable-maintain-aspect&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Gallery Groups</h2>
+        <p>Group images with <code>data-popupable-group</code>. Navigate with arrow buttons, swipe, scroll wheel, or keyboard arrows. Add <code>data-popupable-counter</code> and <code>data-popupable-thumbnails</code> to each image for a counter and thumbnail strip:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/30/400/300" data-popupable data-popupable-group="gallery"
+               data-popupable-src="https://picsum.photos/id/30/1600/1200"
+               data-popupable-counter data-popupable-thumbnails data-popupable-title="Photo 1">
+          <img src="https://picsum.photos/id/31/400/300" data-popupable data-popupable-group="gallery"
+               data-popupable-src="https://picsum.photos/id/31/1600/1200"
+               data-popupable-counter data-popupable-thumbnails data-popupable-title="Photo 2">
+          <img src="https://picsum.photos/id/32/400/300" data-popupable data-popupable-group="gallery"
+               data-popupable-src="https://picsum.photos/id/32/1600/1200"
+               data-popupable-counter data-popupable-thumbnails data-popupable-title="Photo 3">
+          <img src="https://picsum.photos/id/33/400/300" data-popupable data-popupable-group="gallery"
+               data-popupable-src="https://picsum.photos/id/33/1600/1200"
+               data-popupable-counter data-popupable-thumbnails data-popupable-title="Photo 4">
+        </div>
+        <pre>&lt;img src="photo1.jpg" data-popupable data-popupable-group="gallery"
+     data-popupable-counter data-popupable-thumbnails&gt;
+&lt;img src="photo2.jpg" data-popupable data-popupable-group="gallery"
+     data-popupable-counter data-popupable-thumbnails&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Unique IDs</h2>
+        <p>Set a value on <code>data-popupable</code> to give the popup a CSS <code>id</code>. In a gallery, the <code>id</code> updates as you navigate, so each image can have its own backdrop colour:</p>
+        <div class="image-grid">
+          <img src="https://picsum.photos/id/1050/1920/1080" data-popupable="gallery2-1" data-popupable-group="gallery2"
+               data-popupable-counter>
+          <img src="https://picsum.photos/id/1065/1920/1080" data-popupable="gallery2-2" data-popupable-group="gallery2"
+               data-popupable-counter>
+          <img src="https://picsum.photos/id/1070/1920/1080" data-popupable="gallery2-3" data-popupable-group="gallery2"
+               data-popupable-counter>
+          <img src="https://picsum.photos/id/1080/1920/1080" data-popupable="gallery2-4" data-popupable-group="gallery2"
+               data-popupable-counter>
+        </div>
+        <pre>&lt;img src="photo.jpg" data-popupable="gallery2-1" data-popupable-group="gallery2"&gt;
+&lt;img src="photo.jpg" data-popupable="gallery2-2" data-popupable-group="gallery2"&gt;
+&lt;img src="photo.jpg" data-popupable="gallery2-3" data-popupable-group="gallery2"&gt;
+&lt;img src="photo.jpg" data-popupable="gallery2-4" data-popupable-group="gallery2"&gt;
+
+&lt;style&gt;
+  #gallery2-1.popupable-active { background: #0A4446BB; }
+  #gallery2-2.popupable-active { background: #877E75BB; }
+  #gallery2-3.popupable-active { background: #45511FBB; }
+  #gallery2-4.popupable-active { background: #A00D3CBB; }
+&lt;/style&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Customization Variables</h2>
+        <p>Fine-tune the popup appearance with CSS variables:</p>
+        <pre>&lt;style&gt;
+  :root {
+    --popupable-background: #000B;     /* Backdrop color */
+    --popupable-blur: 6px;             /* Backdrop blur amount */
+    --popupable-ui-background: #0008;  /* Header, footer, and button background */
+    --popupable-screen-padding: 40px;  /* Gap between image and viewport edge */
+    --popupable-open-duration: .25s;   /* Open/close transition duration */
+    --popupable-switch-duration: .25s; /* Gallery navigation transition duration */
+  }
+&lt;/style&gt;</pre>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <p><strong>popupable</strong> — <a href="https://github.com/ewanhowell5195/popupable" target="_blank">GitHub</a> | <a href="https://www.npmjs.com/package/popupable" target="_blank">NPM</a> | <a href="https://www.jsdelivr.com/package/npm/popupable" target="_blank">JSDelivr</a></p>
+    <p style="margin-top: 10px;">MIT License © <a href="https://github.com/ewanhowell5195" target="_blank">Ewan Howell</a></p>
+  </footer>
+
+  <script>
+    const toggle = document.getElementById("maintain-aspect-toggle")
+    const images = document.querySelectorAll(".frame[data-popupable]")
+    toggle.addEventListener("change", () => {
+      for (const img of images) {
+        if (toggle.checked) {
+          img.setAttribute("data-popupable-maintain-aspect", "")
+        } else {
+          img.removeAttribute("data-popupable-maintain-aspect")
+        }
+      }
+    })
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/popupable/dist/popupable.min.js"></script>
+</body>
+</html>
