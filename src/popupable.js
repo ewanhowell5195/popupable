@@ -133,6 +133,7 @@
     const maxH = viewportHeight - padding * 2
     const counter = activePopup.popup.querySelector(".popupable-counter")
     const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
+    const orderPlacement = activePopup.orderPlacement || {}
 
     let clones
     if (activePopup.group) {
@@ -157,7 +158,15 @@
       const cloneMaxH = Math.max(0, maxH)
       const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
       const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
-      const constrainedMaxH = Math.max(0, viewportHeight - contentHeight - thumbnailHeight - counterHeight - padding * 2)
+      const topReserved =
+        (orderPlacement.counterTop ? counterHeight : 0) +
+        (orderPlacement.contentTop ? contentHeight : 0) +
+        (orderPlacement.thumbnailsTop ? thumbnailHeight : 0)
+      const bottomReserved =
+        (orderPlacement.counterBottom ? counterHeight : 0) +
+        (orderPlacement.contentBottom ? contentHeight : 0) +
+        (orderPlacement.thumbnailsBottom ? thumbnailHeight : 0)
+      const constrainedMaxH = Math.max(0, viewportHeight - topReserved - bottomReserved - padding * 2)
 
       let finalW = maxW
       let finalH = finalW / aspect
@@ -186,11 +195,9 @@
       }
 
       let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
-      if (contentHeight || thumbnailHeight) {
-        const maxTop = viewportOffsetTop + viewportHeight - contentHeight - thumbnailHeight - padding - finalH
-        finalTop = Math.min(finalTop, maxTop)
-      }
-      finalTop = Math.max(finalTop, viewportOffsetTop + counterHeight + padding)
+      const maxTop = viewportOffsetTop + viewportHeight - bottomReserved - padding - finalH
+      finalTop = Math.min(finalTop, maxTop)
+      finalTop = Math.max(finalTop, viewportOffsetTop + topReserved + padding)
 
       clone.cloneContainer.style.top = finalTop + "px"
       clone.cloneContainer.style.left = viewportOffsetLeft + padding + (maxW - finalW) / 2 + "px"
@@ -208,6 +215,37 @@
       const rect = active.content.getBoundingClientRect()
       activePopup.contentContainer.style.height = rect.height / uiScale + "px"
     }
+  }
+
+  function parsePopupableOrder(value) {
+    if (!value) return null
+
+    const parts = value
+      .split(",")
+      .map(part => part.trim().toLowerCase())
+      .filter(Boolean)
+
+    const imageIndex = parts.indexOf("image")
+    if (imageIndex === -1) return null
+
+    const top = []
+    const bottom = []
+
+    for (let i = 0; i < imageIndex; i++) {
+      const token = parts[i]
+      if (token === "counter" || token === "content" || token === "thumbnails") {
+        if (!top.includes(token)) top.push(token)
+      }
+    }
+
+    for (let i = imageIndex + 1; i < parts.length; i++) {
+      const token = parts[i]
+      if (token === "counter" || token === "content" || token === "thumbnails") {
+        if (!bottom.includes(token)) bottom.push(token)
+      }
+    }
+
+    return { top, bottom }
   }
 
   function cloneElement(original) {
@@ -283,6 +321,7 @@
       noUpscale: original.hasAttribute("data-popupable-no-upscale"),
       counter: original.hasAttribute("data-popupable-counter"),
       thumbnails: original.hasAttribute("data-popupable-thumbnails"),
+      order: parsePopupableOrder(original.dataset.popupableOrder),
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.complete ? Promise.resolve() : new Promise(resolve => {
           img.addEventListener("load", resolve, { once: true })
@@ -426,17 +465,21 @@
     const viewportLayer = document.createElement("div")
     viewportLayer.className = "popupable-viewport"
 
-    const footer = document.createElement("div")
-    footer.classList = "popupable-footer"
-
     let contentContainer
     if (content) {
       contentContainer = document.createElement("div")
       contentContainer.classList = "popupable-content-container"
-      footer.append(contentContainer)
     }
 
-    let header, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt
+    let header, footer, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt
+    let orderPlacement = {
+      counterTop: false,
+      counterBottom: false,
+      contentTop: false,
+      contentBottom: false,
+      thumbnailsTop: false,
+      thumbnailsBottom: false
+    }
 
     if (group) {
       if (cloneObj.counter) {
@@ -898,7 +941,7 @@
       }
 
       for (const clone of group) {
-        if (clone.content) {
+        if (clone.content && contentContainer) {
           contentContainer.append(clone.content)
         }
       }
@@ -907,16 +950,70 @@
         contentContainer.append(content)
       }
     }
-    if (header) {
-      viewportLayer.append(header)
+
+    const enabledOrderItems = {
+      counter: !!counter,
+      content: !!contentContainer,
+      thumbnails: !!thumbnailsContainer
     }
-    viewportLayer.append(footer)
-    if (thumbnailsContainer) {
-      footer.append(thumbnailsContainer)
+
+    let topOrder
+    let bottomOrder
+
+    if (cloneObj.order) {
+      topOrder = cloneObj.order.top.filter(token => enabledOrderItems[token])
+      bottomOrder = cloneObj.order.bottom.filter(token => enabledOrderItems[token])
+
+      for (const token of ["counter", "content", "thumbnails"]) {
+        if (!enabledOrderItems[token]) continue
+        if (!topOrder.includes(token) && !bottomOrder.includes(token)) {
+          bottomOrder.push(token)
+        }
+      }
+    } else {
+      topOrder = enabledOrderItems.counter ? ["counter"] : []
+      bottomOrder = []
+      if (enabledOrderItems.content) bottomOrder.push("content")
+      if (enabledOrderItems.thumbnails) bottomOrder.push("thumbnails")
     }
+
+    if (topOrder.length) {
+      header = document.createElement("div")
+      header.className = "popupable-header"
+    }
+
+    if (bottomOrder.length) {
+      footer = document.createElement("div")
+      footer.className = "popupable-footer"
+    }
+
+    const appendOrderedUiItem = (container, token) => {
+      if (!container) return
+      if (token === "counter" && counter) {
+        orderPlacement[container === header ? "counterTop" : "counterBottom"] = true
+        container.append(counter)
+      } else if (token === "content" && contentContainer) {
+        orderPlacement[container === header ? "contentTop" : "contentBottom"] = true
+        container.append(contentContainer)
+      } else if (token === "thumbnails" && thumbnailsContainer) {
+        orderPlacement[container === header ? "thumbnailsTop" : "thumbnailsBottom"] = true
+        container.append(thumbnailsContainer)
+      }
+    }
+
+    for (const token of topOrder) {
+      appendOrderedUiItem(header, token)
+    }
+
+    for (const token of bottomOrder) {
+      appendOrderedUiItem(footer, token)
+    }
+
+    if (header) viewportLayer.append(header)
+    if (footer) viewportLayer.append(footer)
     popup.append(cloneList, viewportLayer)
 
-    Object.assign(activePopup, cloneObj, { popup, group, contentContainer, thumbnailsContainer, goNext, goPrev })
+    Object.assign(activePopup, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, goNext, goPrev })
 
     await activePopup.ready
 

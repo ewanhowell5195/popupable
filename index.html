@@ -638,6 +638,58 @@
     </section>
 
     <section>
+      <h2>Custom UI order</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-order="content,thumbnails,image,counter"</code> so all UI appears below the image in that order.</p>
+
+      <div class="row">
+        <img
+          src="https://picsum.photos/id/112/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery-order"
+          data-popupable-counter
+          data-popupable-thumbnails
+          data-popupable-title="Ordered item 1"
+          data-popupable-description="Counter, content, then thumbnails below image"
+          data-popupable-order="content,thumbnails,image,counter"
+        >
+        <img
+          src="https://picsum.photos/id/126/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery-order"
+          data-popupable-counter
+          data-popupable-thumbnails
+          data-popupable-title="Ordered item 2"
+          data-popupable-description="Same order applied from the clicked image"
+          data-popupable-order="content,thumbnails,image,counter"
+        >
+        <img
+          src="https://picsum.photos/id/146/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery-order"
+          data-popupable-counter
+          data-popupable-thumbnails
+          data-popupable-title="Ordered item 3"
+          data-popupable-description="Image first, UI stack after"
+          data-popupable-order="content,thumbnails,image,counter"
+        >
+        <img
+          src="https://picsum.photos/id/164/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="gallery-order"
+          data-popupable-counter
+          data-popupable-thumbnails
+          data-popupable-title="Ordered item 4"
+          data-popupable-description="Useful when header should stay empty"
+          data-popupable-order="content,thumbnails,image,counter"
+        >
+      </div>
+    </section>
+
+    <section>
       <h2>Native size cap (no upscale)</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Both use the same 640x360 source shown as 160x90 thumbnails. The right image uses <code>data-popupable-no-upscale</code> and grows only up to native resolution.</p>
 
