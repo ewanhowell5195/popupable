@@ -1049,6 +1049,7 @@
       const pointers = new Map()
       let panPointerId, panLastX, panLastY, pinchLastCenterX, pinchLastCenterY, pinchLastDistance
       let tapTarget, tapStartX, tapStartY, tapMoved
+      let usedPinchZoom = false
 
       const rect = current.cloneContainer.getBoundingClientRect()
       const startX = event?.clientX ?? rect.left + rect.width / 2
@@ -1211,6 +1212,7 @@
               x += centerX - pinchLastCenterX
               y += centerY - pinchLastCenterY
               zoomAt(scale * (distance / pinchLastDistance), centerX, centerY)
+              usedPinchZoom = true
 
               pinchLastCenterX = centerX
               pinchLastCenterY = centerY
@@ -1228,6 +1230,11 @@
             pointers.delete(e.pointerId)
             if (popup.hasPointerCapture(e.pointerId)) {
               popup.releasePointerCapture(e.pointerId)
+            }
+
+            if (usedPinchZoom && scale <= 1.01 && pointers.size < 2) {
+              state.unzoom()
+              return
             }
 
             if (!pointers.size && !tapMoved && Math.abs(e.clientX - tapStartX) < 3 && Math.abs(e.clientY - tapStartY) < 3) {
