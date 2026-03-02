@@ -1,6 +1,6 @@
 {
   "name": "popupable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A lightweight, zero-dependency lightbox library using modern JavaScript and CSS.",
   "author": "Ewan Howell <ewanhowell5195>",
   "license": "MIT",
