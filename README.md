@@ -118,7 +118,7 @@ Group multiple images together with `data-popupable-group`. Users can navigate w
 <img src="photo3.jpg" data-popupable data-popupable-group="holiday">
 ```
 
-#### Counter and thumbnails
+###Counter and thumbnails
 
 Add `data-popupable-counter` and/or `data-popupable-thumbnails` to individual group members. The attributes are read from whichever image is clicked to open the gallery, so add them to every image that should show these elements:
 
@@ -128,7 +128,7 @@ Add `data-popupable-counter` and/or `data-popupable-thumbnails` to individual gr
 <img src="photo3.jpg" data-popupable data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
 ```
 
-#### Custom UI order
+###Custom UI order
 
 Control the order of UI elements around the image with `data-popupable-order`. The `image` token marks where the image sits; everything before it goes in the header, everything after goes in the footer.
 
@@ -139,7 +139,7 @@ Control the order of UI elements around the image with `data-popupable-order`. T
 
 Default order: `counter,image,content,thumbnails`
 
-#### Keyboard navigation
+###Keyboard navigation
 
 | Keys | Action |
 |---|---|
