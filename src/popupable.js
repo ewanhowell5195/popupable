@@ -1233,6 +1233,7 @@
             }
 
             if (usedPinchZoom && scale <= 1.01 && pointers.size < 2) {
+              state.skipOpenTouchPointerUps = pointers.size
               state.unzoom()
               return
             }
@@ -1333,6 +1334,10 @@
     popup.addEventListener("pointerup", e => {
       if (popup._state.state === "zoomed") return
       if (e.pointerType === "touch" && activeTouchPointers > 1) return
+      if (e.pointerType === "touch" && (popup._state.skipOpenTouchPointerUps || 0) > 0) {
+        popup._state.skipOpenTouchPointerUps--
+        return
+      }
 
       const now = performance.now()
       const isNav = e.target.closest(".popupable-next-container, .popupable-prev-container") != null
