@@ -1,5 +1,5 @@
 {
-  let activePopup, previousPopup, mouseDownTarget
+  let activePopup, previousPopup, mouseDownTarget, popupLoadToken = 0
 
   function disableScroll() {
     window.addEventListener("wheel", prevent, { passive: false })
@@ -65,6 +65,7 @@
 
   function closePopupable() {
     if (!activePopup || activePopup.state === "close") return
+    popupLoadToken++
     activePopup.state = "close"
 
     const { cloneContainer, clone, original, popup, transition, group, listeners } = activePopup
@@ -407,6 +408,12 @@
     }
     e.preventDefault()
 
+    if (activePopup?.original === original && activePopup.popup && !activePopup.popup.isConnected && activePopup.state !== "close") {
+      return
+    }
+
+    const loadToken = ++popupLoadToken
+
     if (activePopup) {
       closePopupable()
     }
@@ -415,6 +422,7 @@
       transition: {},
       listeners: []
     }
+    const popupState = activePopup
 
     const cloneList = document.createElement("div")
     cloneList.className = "popupable-clones"
@@ -977,9 +985,12 @@
     if (footer) viewportLayer.append(footer)
     popup.append(cloneList, viewportLayer)
 
-    Object.assign(activePopup, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, goNext, goPrev })
+    Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, goNext, goPrev })
 
-    await activePopup.ready
+    await popupState.ready
+    if (loadToken !== popupLoadToken || activePopup !== popupState || popupState.state === "close") {
+      return
+    }
 
     setCloneToOriginalRect(cloneContainer, original)
     document.body.append(popup)
@@ -987,9 +998,9 @@
     disableScroll()
 
     const styles = getComputedStyle(popup)
-    activePopup.transition.duration = parseFloat(styles.transitionDuration) * 1000 + parseFloat(styles.transitionDelay) * 1000
+    popupState.transition.duration = parseFloat(styles.transitionDuration) * 1000 + parseFloat(styles.transitionDelay) * 1000
 
-    popup._state = activePopup
+    popup._state = popupState
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
