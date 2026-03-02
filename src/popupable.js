@@ -1018,7 +1018,27 @@
     function enterZoom(state, current, event, initialScale, initialPointers = []) {
       if (state.state !== "open") return
 
+      let swipeOffsetX = 0
+      const swipeLayer = current.cloneContainer.parentElement
+      const swipeTransform = swipeLayer.style.transform
+      if (swipeTransform) {
+        const match = swipeTransform.match(/translateX\((-?\d+(?:\.\d+)?)px\)/)
+        if (match) {
+          swipeOffsetX = Number(match[1]) || 0
+        }
+      }
+
       dragging = false
+      if (Math.abs(swipeOffsetX) > 0.5) {
+        current.cloneContainer.style.translate = "0 0"
+        current.cloneContainer.style.transition = "translate var(--popupable-switch-duration), transform 0s"
+        swipeLayer.style.transition = null
+        swipeLayer.style.transform = null
+        current.cloneContainer.style.translate = `${swipeOffsetX}px 0`
+      } else {
+        swipeLayer.style.transition = null
+        swipeLayer.style.transform = null
+      }
       state.state = "zoomed"
       popup.classList.add("popupable-locked")
 
@@ -1085,7 +1105,6 @@
       render()
 
       if (initialPointers.length) {
-        current.cloneContainer.style.transition = "none"
         tapMoved = true
         for (const pointer of initialPointers) {
           pointers.set(pointer.id, {
@@ -1112,6 +1131,7 @@
         current.cloneContainer.classList.remove("popupable-zoomed")
         current.cloneContainer.style.transition = null
         current.cloneContainer.style.transform = null
+        current.cloneContainer.style.translate = null
 
         for (const listener of state.zoomListeners) {
           listener.target.removeEventListener(listener.event, listener.func)
@@ -1258,7 +1278,6 @@
           if (popup._state.state !== "open" || e.pointerType !== "touch") return
           const state = popup._state
           const current = state.group ? state.group[state.group.currentIndex] : state
-          if (!current.zoomable) return
           if (e.target.closest(".popupable-clone-container") !== current.cloneContainer) return
 
           openTouchPointers.set(e.pointerId, {
