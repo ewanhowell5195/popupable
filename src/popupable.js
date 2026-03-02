@@ -436,7 +436,7 @@
       footer.append(contentContainer)
     }
 
-    let header, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev
+    let header, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt
 
     if (group) {
       if (cloneObj.counter) {
@@ -648,9 +648,13 @@
           event: "wheel",
           func: e => {
             if (activePopup.state === "zoomed") return
+            const now = performance.now()
+            if (now - (lastWheelNavAt || 0) < 80) return
             if (e.deltaY > 50) {
+              lastWheelNavAt = now
               goNext()
             } else if (e.deltaY < -50) {
+              lastWheelNavAt = now
               goPrev()
             }
           },
