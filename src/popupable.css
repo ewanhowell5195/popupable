@@ -386,18 +386,18 @@
   }
 
   .popupable-button {
-    width: 28px;
-    height: 28px;
+    width: 42px;
+    height: 42px;
   }
 
   .popupable-next-container,
   .popupable-prev-container {
-    padding: 24px;
+    padding: 36px;
   }
 
   .popupable-button svg {
-    width: 16.8px;
-    height: 16.8px;
+    width: 25px;
+    height: 25px;
   }
 
   .popupable-counter {
