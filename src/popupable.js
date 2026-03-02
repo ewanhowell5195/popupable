@@ -440,7 +440,7 @@
     let group
     if (original.dataset.popupableGroup) {
       const grouped = document.querySelectorAll(`[data-popupable-group="${original.dataset.popupableGroup}"]`)
-      if (grouped.length > 1) {
+      if (grouped.length) {
         group = []
         for (const [i, orig] of grouped.entries()) {
           if (orig === original) {
@@ -1391,7 +1391,7 @@
             return
           }
 
-          if (current.zoomable && e.target.classList.contains("popupable-clone")) {
+          if (current.zoomable && (e.target.classList.contains("popupable-clone") || e.target.classList.contains("popupable-clone-layer"))) {
             enterZoom(state, current, e, 2)
             return
           }
