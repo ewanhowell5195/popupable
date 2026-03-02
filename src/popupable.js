@@ -697,7 +697,7 @@
       )
 
       if (thumbnailsContainer) {
-        let thumbnailsDragging, thumbnailsDragMoved, thumbnailsSuppressClick, thumbnailsStartX, thumbnailsStartScrollLeft, thumbnailsLastScrollLeft, thumbnailsLastAt, thumbnailsVelocity, thumbnailsMomentumRaf
+        let thumbnailsDragging, thumbnailsDragMoved, thumbnailsStartX, thumbnailsStartScrollLeft, thumbnailsLastScrollLeft, thumbnailsLastAt, thumbnailsVelocity, thumbnailsMomentumRaf
 
         function stopThumbnailsMomentum() {
           if (thumbnailsMomentumRaf) {
@@ -809,9 +809,14 @@
                 if (performance.now() - thumbnailsLastAt > 10) {
                   thumbnailsVelocity = 0
                 }
-                thumbnailsSuppressClick = true
                 startThumbnailsMomentum()
+                return
               }
+
+              const thumbnail = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".popupable-thumbnail")
+              if (!thumbnail) return
+              group.currentIndex = Number(thumbnail.dataset.thumbnailIndex)
+              recalculateVisible()
             }
           },
           {
@@ -825,20 +830,6 @@
                 thumbnailsContainer.releasePointerCapture(e.pointerId)
               }
               stopThumbnailsMomentum()
-            }
-          },
-          {
-            target: thumbnailsContainer,
-            event: "click",
-            func: e => {
-              if (thumbnailsSuppressClick) {
-                thumbnailsSuppressClick = false
-                return
-              }
-              const thumbnail = document.elementFromPoint(e.clientX, e.clientY)?.closest?.(".popupable-thumbnail")
-              if (!thumbnail) return
-              group.currentIndex = Number(thumbnail.dataset.thumbnailIndex)
-              recalculateVisible()
             }
           },
           {
