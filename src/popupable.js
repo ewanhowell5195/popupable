@@ -1027,9 +1027,10 @@
           swipeOffsetX = Number(match[1]) || 0
         }
       }
+      const hasSwipeOffset = Math.abs(swipeOffsetX) > 0.5
 
       dragging = false
-      if (Math.abs(swipeOffsetX) > 0.5) {
+      if (hasSwipeOffset) {
         current.cloneContainer.style.translate = "0 0"
         current.cloneContainer.style.transition = "translate var(--popupable-switch-duration), transform 0s"
         swipeLayer.style.transition = null
@@ -1105,6 +1106,9 @@
       render()
 
       if (initialPointers.length) {
+        if (!hasSwipeOffset) {
+          current.cloneContainer.style.transition = "none"
+        }
         tapMoved = true
         for (const pointer of initialPointers) {
           pointers.set(pointer.id, {
