@@ -338,6 +338,7 @@
     if (e.target.closest(".popupable-header, .popupable-footer")) return
     dragging = true
     downX = e.clientX
+    downY = e.clientY
   })
 
   function handleMove(e) {
@@ -364,6 +365,12 @@
       current.cloneContainer.parentElement.style.transform = null
       const dx = e.clientX - downX
       const dxa = Math.abs(dx)
+      const dy = e.clientY - downY
+      const dya = Math.abs(dy)
+      if (e.pointerType === "touch" && dya > 56 && dya > dxa * 1.1) {
+        closePopupable()
+        return
+      }
       if (activePopup.group && dxa > 3) {
         const multiplier = Math.max(0, Math.floor((dxa - window.innerWidth / 2) / window.innerWidth))
         if (dx > 32) {
