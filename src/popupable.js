@@ -332,13 +332,13 @@
     }
     if (!dragging) {
       mouseDownTarget = e.target
+      downX = e.clientX
+      downY = e.clientY
     }
 
     if (dragging || activePopup?.state !== "open") return
     if (e.target.closest(".popupable-header, .popupable-footer")) return
     dragging = true
-    downX = e.clientX
-    downY = e.clientY
   })
 
   function handleMove(e) {
@@ -414,6 +414,8 @@
       return
     }
     e.preventDefault()
+
+    if (Math.abs(e.clientX - downX) > 5 || Math.abs(e.clientY - downY) > 5) return
 
     if (activePopup?.original === original && activePopup.popup && !activePopup.popup.isConnected && activePopup.state !== "close") {
       return
