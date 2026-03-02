@@ -118,7 +118,7 @@
 }
 
 .popupable-container.popupable-open .popupable-clone-container {
-  transition: transform var(--popupable-switch-duration);
+  transition: transform var(--popupable-switch-duration), translate var(--popupable-switch-duration);
 }
 
 .popupable-clone,
