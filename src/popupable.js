@@ -1,5 +1,6 @@
 {
   let activePopup, previousPopup, mouseDownTarget, popupLoadToken = 0
+  const DRAG_THRESHOLD = 3
 
   function disableScroll() {
     window.addEventListener("wheel", prevent, { passive: false })
@@ -371,7 +372,7 @@
         closePopupable()
         return
       }
-      if (activePopup.group && dxa > 3) {
+      if (activePopup.group && dxa > DRAG_THRESHOLD) {
         const multiplier = Math.max(0, Math.floor((dxa - window.innerWidth / 2) / window.innerWidth))
         if (dx > 32) {
           for (let i = 0; i <= multiplier; i++) {
@@ -415,7 +416,7 @@
     }
     e.preventDefault()
 
-    if (Math.abs(e.clientX - downX) > 5 || Math.abs(e.clientY - downY) > 5) return
+    if (Math.abs(e.clientX - downX) > DRAG_THRESHOLD || Math.abs(e.clientY - downY) > DRAG_THRESHOLD) return
 
     if (activePopup?.original === original && activePopup.popup && !activePopup.popup.isConnected && activePopup.state !== "close") {
       return
@@ -793,7 +794,7 @@
             func: e => {
               if (!thumbnailsDragging) return
               const deltaX = e.clientX - thumbnailsStartX
-              if (Math.abs(deltaX) > 3) {
+              if (Math.abs(deltaX) > DRAG_THRESHOLD) {
                 thumbnailsDragMoved = true
               }
               const now = performance.now()
@@ -924,7 +925,7 @@
               navLastMoveY = e.clientY
               return
             }
-            if (Math.abs(e.clientX - navLastMoveX) < 3 && Math.abs(e.clientY - navLastMoveY) < 3) {
+            if (Math.abs(e.clientX - navLastMoveX) < DRAG_THRESHOLD && Math.abs(e.clientY - navLastMoveY) < DRAG_THRESHOLD) {
               return
             }
             navLastMoveX = e.clientX
@@ -1190,7 +1191,7 @@
             pointer.x = e.clientX
             pointer.y = e.clientY
 
-            if (!tapMoved && (Math.abs(e.clientX - tapStartX) > 3 || Math.abs(e.clientY - tapStartY) > 3)) {
+            if (!tapMoved && (Math.abs(e.clientX - tapStartX) > DRAG_THRESHOLD || Math.abs(e.clientY - tapStartY) > DRAG_THRESHOLD)) {
               tapMoved = true
             }
 
@@ -1248,7 +1249,7 @@
               return
             }
 
-            if (!pointers.size && !tapMoved && Math.abs(e.clientX - tapStartX) < 3 && Math.abs(e.clientY - tapStartY) < 3) {
+            if (!pointers.size && !tapMoved && Math.abs(e.clientX - tapStartX) < DRAG_THRESHOLD && Math.abs(e.clientY - tapStartY) < DRAG_THRESHOLD) {
               const clickedClone = tapTarget?.closest?.(".popupable-clone-container") === current.cloneContainer
               const clickedBackground = tapTarget === popup || tapTarget === viewportLayer
               if (clickedClone || clickedBackground) {
