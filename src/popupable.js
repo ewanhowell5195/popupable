@@ -704,7 +704,7 @@
       )
 
       if (thumbnailsContainer) {
-        let thumbnailsDragging, thumbnailsDragMoved, thumbnailsStartX, thumbnailsStartScrollLeft, thumbnailsLastScrollLeft, thumbnailsLastAt, thumbnailsVelocity, thumbnailsMomentumRaf
+        let thumbnailsDragging, thumbnailsDragMoved, thumbnailsShowDraggingClass, thumbnailsStartX, thumbnailsStartScrollLeft, thumbnailsLastScrollLeft, thumbnailsLastAt, thumbnailsVelocity, thumbnailsMomentumRaf
 
         function stopThumbnailsMomentum() {
           if (thumbnailsMomentumRaf) {
@@ -770,7 +770,7 @@
             func: e => {
               if (e.button !== 0) return
               const maxScroll = thumbnailsContainer.scrollWidth - thumbnailsContainer.clientWidth
-              if (maxScroll <= 0) return
+              thumbnailsShowDraggingClass = maxScroll > 0
               stopThumbnailsMomentum()
               thumbnailsDragging = true
               thumbnailsDragMoved = false
@@ -779,7 +779,9 @@
               thumbnailsLastScrollLeft = thumbnailsContainer.scrollLeft
               thumbnailsLastAt = performance.now()
               thumbnailsVelocity = 0
-              thumbnailsContainer.classList.add("popupable-thumbnails-dragging")
+              if (thumbnailsShowDraggingClass) {
+                thumbnailsContainer.classList.add("popupable-thumbnails-dragging")
+              }
               thumbnailsContainer.setPointerCapture(e.pointerId)
             }
           },
@@ -810,7 +812,9 @@
             func: e => {
               if (!thumbnailsDragging) return
               thumbnailsDragging = false
-              thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              if (thumbnailsShowDraggingClass) {
+                thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              }
               if (thumbnailsContainer.hasPointerCapture(e.pointerId)) {
                 thumbnailsContainer.releasePointerCapture(e.pointerId)
               }
@@ -834,7 +838,9 @@
             func: e => {
               if (!thumbnailsDragging) return
               thumbnailsDragging = false
-              thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              if (thumbnailsShowDraggingClass) {
+                thumbnailsContainer.classList.remove("popupable-thumbnails-dragging")
+              }
               if (thumbnailsContainer.hasPointerCapture(e.pointerId)) {
                 thumbnailsContainer.releasePointerCapture(e.pointerId)
               }
