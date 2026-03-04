@@ -4,6 +4,7 @@ A lightweight, zero-dependency lightbox library using modern JavaScript and CSS.
 Just add `data-popupable` to any image!
 
 [![npm version](https://badge.fury.io/js/popupable.svg)](https://www.npmjs.com/package/popupable)
+[![jsDelivr](https://data.jsdelivr.com/v1/package/npm/popupable/badge)](https://www.jsdelivr.com/package/npm/popupable)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 [**Live Demo**](https://popupable.ewanhowell.com/)
