@@ -394,7 +394,9 @@
       (!allowViewportRelease &&
         e.target != mouseDownTarget &&
         !(mouseDownTarget.classList.contains("popupable-clone-container") &&
-          e.target === previousPopup?.original))
+          e.target === previousPopup?.original) &&
+        !(mouseDownTarget.closest(".popupable-container") && !e.target.closest(".popupable-container"))) ||
+      Math.abs(e.clientX - downX) > DRAG_THRESHOLD || Math.abs(e.clientY - downY) > DRAG_THRESHOLD
     ) return
     const original = (allowViewportRelease ? mouseDownTarget.closest("[data-popupable]") : null) || e.target.closest("[data-popupable]")
     if (!original) {
@@ -415,8 +417,6 @@
       return
     }
     e.preventDefault()
-
-    if (Math.abs(e.clientX - downX) > DRAG_THRESHOLD || Math.abs(e.clientY - downY) > DRAG_THRESHOLD) return
 
     if (activePopup?.original === original && activePopup.popup && !activePopup.popup.isConnected && activePopup.state !== "close") {
       return
