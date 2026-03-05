@@ -342,12 +342,20 @@
 
   let dragging, downX, downY, activeTouchPointers = 0
 
+  document.addEventListener("touchstart", e => {
+    activeTouchPointers = e.touches.length
+  })
+
+  document.addEventListener("touchend", e => {
+    activeTouchPointers = e.touches.length
+  })
+
+  document.addEventListener("touchcancel", e => {
+    activeTouchPointers = e.touches.length
+  })
 
   document.addEventListener("pointerdown", e => {
     if (e.button !== 0) return
-    if (e.pointerType === "touch") {
-      activeTouchPointers++
-    }
     if (!dragging) {
       mouseDownTarget = e.target
       downX = e.clientX
@@ -372,8 +380,7 @@
   document.addEventListener("pointerup", async e => {
     if (e.button !== 0) return
     if (e.pointerType === "touch") {
-      activeTouchPointers = Math.max(0, activeTouchPointers - 1)
-      if (dragging && activeTouchPointers >= 1) return
+      if (dragging && activeTouchPointers > 1) return
     }
 
     if (dragging) {
@@ -1434,12 +1441,6 @@
 
       openPopupable(activePopup)
     })
-  })
-
-  document.addEventListener("pointercancel", e => {
-    if (e.pointerType === "touch") {
-      activeTouchPointers = Math.max(0, activeTouchPointers - 1)
-    }
   })
 
   document.addEventListener("keydown", e => {
