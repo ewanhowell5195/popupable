@@ -340,19 +340,7 @@
     }
   }
 
-  let dragging, downX, downY, activeTouchPointers = 0
-
-  document.addEventListener("touchstart", e => {
-    activeTouchPointers = e.touches.length
-  })
-
-  document.addEventListener("touchend", e => {
-    activeTouchPointers = e.touches.length
-  })
-
-  document.addEventListener("touchcancel", e => {
-    activeTouchPointers = e.touches.length
-  })
+  let dragging, downX, downY
 
   document.addEventListener("pointerdown", e => {
     if (e.button !== 0) return
@@ -379,9 +367,6 @@
 
   document.addEventListener("pointerup", async e => {
     if (e.button !== 0) return
-    if (e.pointerType === "touch") {
-      if (dragging && activeTouchPointers > 1) return
-    }
 
     if (dragging) {
       dragging = false
@@ -1373,7 +1358,6 @@
 
     popup.addEventListener("pointerup", e => {
       if (popup._state.state === "zoomed") return
-      if (e.pointerType === "touch" && activeTouchPointers > 1) return
       if (e.pointerType === "touch" && (popup._state.skipOpenTouchPointerUps || 0) > 0) {
         popup._state.skipOpenTouchPointerUps--
         return
