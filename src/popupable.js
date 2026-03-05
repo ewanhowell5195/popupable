@@ -352,7 +352,7 @@
       downY = e.clientY
     }
 
-    if (dragging || activePopup?.state !== "open") return
+    if (dragging || activePopup?.state !== "open" || !activePopup.popup?.classList.contains("popupable-open")) return
     if (e.target.closest(".popupable-header, .popupable-footer")) return
     dragging = true
   })
