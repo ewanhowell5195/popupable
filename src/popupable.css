@@ -256,15 +256,6 @@
   opacity: 0;
 }
 
-.popupable-container:not(.popupable-active) .popupable-clone-container:not(.popupable-clone-extra) {
-  transform: initial;
-}
-
-.popupable-container:not(.popupable-active) .popupable-clone-extra {
-  opacity: 0;
-  scale: 0.75;
-}
-
 .popupable-header,
 .popupable-footer {
   position: absolute;

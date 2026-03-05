@@ -60,7 +60,7 @@
 
     updateExpandedSize()
 
-    cloneContainer.removeEventListener("transitionend", transition.listener)
+    toOpen.closingContainer?.removeEventListener("transitionend", transition.listener)
 
     transition.listener = e => {
       if (e && e.target !== e.currentTarget) return
@@ -97,11 +97,13 @@
     popup.classList.remove("popupable-active")
     popup.classList.remove("popupable-open")
 
-    setCloneToOriginalRect(cloneContainer, original)
+    const closingContainer = group ? group[group.currentIndex].cloneContainer : cloneContainer
+    activePopup.closingContainer = closingContainer
+    setCloneToOriginalRect(closingContainer, original)
 
     if (group) {
-      for (const [i, entry] of group.entries()) {
-        if (entry.clone !== clone && i !== group.currentIndex) {
+      for (const entry of group) {
+        if (entry.cloneContainer !== closingContainer) {
           entry.cloneContainer.style.display = "none"
         }
       }
@@ -116,7 +118,7 @@
     const check = activePopup
     transition.listener = e => {
       if (e && e.target !== e.currentTarget) return
-      cloneContainer.removeEventListener("transitionend", transition.listener)
+      closingContainer.removeEventListener("transitionend", transition.listener)
       original.classList.remove("popupable-hide")
       popup.remove()
       if (check === activePopup) {
@@ -127,7 +129,7 @@
     }
 
     if (transition.duration) {
-      cloneContainer.addEventListener("transitionend", transition.listener)
+      closingContainer.addEventListener("transitionend", transition.listener)
     } else {
       transition.listener()
     }
@@ -465,7 +467,6 @@
           } else {
             const clone = cloneElement(orig, original.currentSrc ?? original.src)
             clone.cloneContainer.style.display = "none"
-            clone.cloneContainer.classList.add("popupable-clone-extra")
             group.push(clone)
             cloneList.append(clone.cloneContainer)
           }
