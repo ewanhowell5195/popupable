@@ -57,6 +57,7 @@
     const { cloneContainer, popup, transition, group, listeners } = toOpen
 
     popup.classList.add("popupable-active")
+    toOpen.clearNavInactive?.()
 
     updateExpandedSize()
 
@@ -551,6 +552,11 @@
         next.classList.remove("popupable-nav-inactive")
         prev.classList.remove("popupable-nav-inactive")
         activePopup.scheduleNavHide()
+      }
+
+      activePopup.clearNavInactive = () => {
+        next.classList.remove("popupable-nav-inactive")
+        prev.classList.remove("popupable-nav-inactive")
       }
 
       async function recalculateVisible() {
