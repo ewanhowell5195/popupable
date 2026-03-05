@@ -2,6 +2,24 @@
   let activePopup, previousPopup, mouseDownTarget, popupLoadToken = 0
   const DRAG_THRESHOLD = 3
 
+  let hapticLabel
+  function triggerHaptic() {
+    if (typeof navigator.vibrate === "function") {
+      navigator.vibrate([10])
+      return
+    }
+    if (!hapticLabel) {
+      hapticLabel = document.createElement("label")
+      hapticLabel.style.cssText = "position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none"
+      const hapticInput = document.createElement("input")
+      hapticInput.type = "checkbox"
+      hapticInput.setAttribute("switch", "")
+      hapticLabel.append(hapticInput)
+      document.body.append(hapticLabel)
+    }
+    hapticLabel.click()
+  }
+
   function disableScroll() {
     window.addEventListener("wheel", prevent, { passive: false })
     window.addEventListener("touchmove", prevent, { passive: false })
@@ -34,6 +52,7 @@
   function openPopupable(toOpen) {
     if (toOpen.state === "open") return
     toOpen.state = "open"
+    triggerHaptic()
 
     const { cloneContainer, popup, transition, group, listeners } = toOpen
 
