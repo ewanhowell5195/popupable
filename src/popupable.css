@@ -43,6 +43,11 @@
   visibility: hidden !important;
 }
 
+.popupable-loading,
+.popupable-loading * {
+  cursor: wait !important;
+}
+
 .popupable-container {
   position: fixed;
   inset: 0;

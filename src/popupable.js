@@ -71,6 +71,7 @@
 
     const { cloneContainer, clone, original, popup, transition, group, listeners } = activePopup
 
+    original.classList.remove("popupable-loading")
     popup.classList.remove("popupable-active")
     popup.classList.remove("popupable-open")
 
@@ -313,10 +314,7 @@
       thumbnails: original.hasAttribute("data-popupable-thumbnails"),
       order: parsePopupableOrder(original.dataset.popupableOrder),
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
-        img.complete ? Promise.resolve() : new Promise(resolve => {
-          img.addEventListener("load", resolve, { once: true })
-          img.addEventListener("error", resolve, { once: true })
-        })
+        img.decode().catch(() => {})
       )),
       content,
       zoomable
@@ -996,7 +994,12 @@
 
     Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, goNext, goPrev })
 
+    const loadingTimer = setTimeout(() => {
+      if (loadToken === popupLoadToken) original.classList.add("popupable-loading")
+    }, 250)
     await popupState.ready
+    clearTimeout(loadingTimer)
+    original.classList.remove("popupable-loading")
     if (loadToken !== popupLoadToken || activePopup !== popupState || popupState.state === "close") {
       return
     }
