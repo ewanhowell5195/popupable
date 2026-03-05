@@ -357,13 +357,18 @@
       downY = e.clientY
     }
 
-    if (dragging || activePopup?.state !== "open" || !activePopup.popup?.classList.contains("popupable-open")) return
+    if (dragging || activePopup?.state !== "open") return
     if (e.target.closest(".popupable-header, .popupable-footer")) return
     dragging = true
   })
 
   function handleMove(e) {
     if (activePopup?.state !== "open" || !activePopup.group || !dragging) return
+    if (!activePopup.popup?.classList.contains("popupable-open")) {
+      downX = e.touches?.[0].clientX ?? e.clientX
+      downY = e.touches?.[0].clientY ?? e.clientY
+      return
+    }
     const current = activePopup.group[activePopup.group.currentIndex]
     current.cloneContainer.parentElement.style.transition = "initial"
     current.cloneContainer.parentElement.style.transform = `translateX(${(e.touches?.[0].clientX ?? e.clientX) - downX}px)`
