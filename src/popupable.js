@@ -61,10 +61,11 @@
     updateExpandedSize()
 
     toOpen.closingContainer?.removeEventListener("transitionend", transition.listener)
+    const openTransitionContainer = toOpen.closingContainer ?? cloneContainer
 
     transition.listener = e => {
       if (e && e.target !== e.currentTarget) return
-      cloneContainer.removeEventListener("transitionend", transition.listener)
+      openTransitionContainer.removeEventListener("transitionend", transition.listener)
       popup.classList.add("popupable-open")
       if (group) {
         for (const entry of group) {
@@ -78,7 +79,7 @@
     }
 
     if (transition.duration) {
-      cloneContainer.addEventListener("transitionend", transition.listener)
+      openTransitionContainer.addEventListener("transitionend", transition.listener)
     } else {
       transition.listener()
     }
