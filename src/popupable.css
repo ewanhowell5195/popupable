@@ -48,6 +48,10 @@
   cursor: wait !important;
 }
 
+.popupable-block-touch * {
+  touch-action: none !important;
+}
+
 .popupable-container {
   position: fixed;
   inset: 0;
@@ -55,6 +59,7 @@
   z-index: 2147483646;
   user-select: none;
   pointer-events: none;
+  touch-action: none;
 }
 
 .popupable-container.popupable-active {
@@ -65,6 +70,10 @@
 
 .popupable-container > * {
   pointer-events: none;
+}
+
+.popupable-container * {
+  -webkit-tap-highlight-color: transparent;
 }
 
 .popupable-viewport {
@@ -382,7 +391,6 @@
 
 .popupable-zoomed {
   cursor: zoom-out;
-  touch-action: none;
 }
 
 @media (max-width: 768px) {

@@ -87,6 +87,8 @@
     if (!activePopup || activePopup.state === "close") return
     popupLoadToken++
     activePopup.state = "close"
+    document.body.classList.add("popupable-block-touch")
+    setTimeout(() => document.body.classList.remove("popupable-block-touch"), 300)
 
     const { cloneContainer, clone, original, popup, transition, group, listeners } = activePopup
 
