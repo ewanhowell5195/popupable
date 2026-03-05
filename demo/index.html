@@ -36,7 +36,7 @@
     header {
       background: #2c3e50;
       color: white;
-      padding: 40px;
+      padding: 40px 20px;
       text-align: center;
     }
 
@@ -158,7 +158,7 @@
 
     .image-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 12px;
       margin: 20px 0;
     }
@@ -244,9 +244,24 @@
       image-rendering: auto !important;
     }
 
+    @media (max-width: 768px) {
+      .image-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
     @media (max-width: 600px) {
       header h1 {
         font-size: 1.8rem;
+      }
+
+      .header-links {
+        gap: 12px;
+      }
+
+      .header-links a {
+        font-size: 14px;
       }
 
       .content {
