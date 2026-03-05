@@ -549,12 +549,6 @@
       }
     })
   </script>
-  <script type="module">
-    import(`../src/popupable.js?rnd=${Math.random()}`)
-    const link = document.createElement('link')
-    link.rel = "stylesheet"
-    link.href = `src/popupable.css?rnd=${Math.random()}`
-    document.head.append(link)
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/popupable/dist/popupable.min.js"></script>
 </body>
 </html>
