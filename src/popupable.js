@@ -261,7 +261,7 @@
     }
   }
 
-  function cloneElement(original) {
+  function cloneElement(original, baseSrc) {
     const cloneContainer = document.createElement("div")
     cloneContainer.className = "popupable-clone-container"
     
@@ -271,7 +271,7 @@
 
     const clone = new Image()
     clone.className = "popupable-clone"
-    clone.src = original.currentSrc ?? original.src
+    clone.src = baseSrc ?? original.currentSrc ?? original.src
 
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
@@ -283,10 +283,10 @@
     cloneContainer.append(clone)
 
     let cloneLayer
-    if (original.dataset.popupableSrc) {
+    if (original.dataset.popupableSrc || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = original.dataset.popupableSrc
+      cloneLayer.src = original.dataset.popupableSrc ?? original.currentSrc ?? original.src
       cloneLayer.style.imageRendering = styles.imageRendering
       cloneContainer.append(cloneLayer)
 
@@ -450,7 +450,7 @@
     cloneList.className = "popupable-clones"
 
     const cloneObj = cloneElement(original)
-    const { cloneContainer, clone, content } = cloneObj
+    const { cloneContainer, content } = cloneObj
 
     let group
     if (original.dataset.popupableGroup) {
@@ -463,7 +463,7 @@
             group.currentIndex = i
             cloneList.append(cloneContainer)
           } else {
-            const clone = cloneElement(orig)
+            const clone = cloneElement(orig, original.currentSrc ?? original.src)
             clone.cloneContainer.style.display = "none"
             clone.cloneContainer.classList.add("popupable-clone-extra")
             group.push(clone)
