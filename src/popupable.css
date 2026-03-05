@@ -185,7 +185,7 @@
 }
 
 .popupable-container.popupable-open .popupable-button {
-  transition: background .25s, opacity var(--popupable-open-duration), transform .25s;
+  transition: background .25s, opacity .25s, transform .25s;
 }
 
 .popupable-button:hover::before,
@@ -238,24 +238,19 @@
   transform: translateX(-4px);
 }
 
-.popupable-next-container.popupable-disabled,
-.popupable-prev-container.popupable-disabled,
-.popupable-next-container.popupable-nav-inactive,
-.popupable-prev-container.popupable-nav-inactive,
-.popupable-locked .popupable-next-container,
-.popupable-locked .popupable-prev-container {
+.popupable-nav-disabled,
+.popupable-nav-inactive,
+.popupable-locked :is(.popupable-next-container, .popupable-prev-container) {
   pointer-events: none;
 }
 
-.popupable-next-container.popupable-disabled .popupable-next,
-.popupable-next-container.popupable-nav-inactive .popupable-next,
+.popupable-next-container:is(.popupable-nav-disabled, .popupable-nav-inactive) .popupable-next,
 .popupable-locked .popupable-next-container .popupable-next {
   transform: translateX(40px);
   opacity: 0;
 }
 
-.popupable-prev-container.popupable-disabled .popupable-prev,
-.popupable-prev-container.popupable-nav-inactive .popupable-prev,
+.popupable-prev-container:is(.popupable-nav-disabled, .popupable-nav-inactive) .popupable-prev,
 .popupable-locked .popupable-prev-container .popupable-prev {
   transform: translateX(-40px);
   opacity: 0;

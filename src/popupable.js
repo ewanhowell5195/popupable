@@ -74,6 +74,7 @@
       for (const listener of listeners) {
         listener.target.addEventListener(listener.event, listener.func, listener.args)
       }
+      toOpen.scheduleNavHide?.()
     }
 
     if (transition.duration) {
@@ -513,14 +514,14 @@
       }
 
       viewportLayer.innerHTML = `
-        <div class="popupable-prev-container${!group.currentIndex ? " popupable-disabled" : ""}">
+        <div class="popupable-prev-container${!group.currentIndex ? " popupable-nav-disabled" : ""}">
           <div class="popupable-button popupable-nav-button popupable-prev">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/>
             </svg>
           </div>
         </div>
-        <div class="popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-disabled" : ""}">
+        <div class="popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-nav-disabled" : ""}">
           <div class="popupable-button popupable-nav-button popupable-next">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
               <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/>
@@ -533,7 +534,7 @@
       let navHideTimeout, navLastMoveX, navLastMoveY, navHovered
       const hideNavOnInactivity = !(navigator.maxTouchPoints > 0 || window.matchMedia("(hover: none)").matches)
 
-      function scheduleNavHide() {
+      activePopup.scheduleNavHide = () => {
         if (!hideNavOnInactivity) return
         clearTimeout(navHideTimeout)
         if (navHovered) return
@@ -547,21 +548,21 @@
       function showNav() {
         next.classList.remove("popupable-nav-inactive")
         prev.classList.remove("popupable-nav-inactive")
-        scheduleNavHide()
+        activePopup.scheduleNavHide()
       }
 
       async function recalculateVisible() {
         const current = group[group.currentIndex]
         await current.ready
         if (group.currentIndex) {
-          prev.classList.remove("popupable-disabled")
+          prev.classList.remove("popupable-nav-disabled")
         } else {
-          prev.classList.add("popupable-disabled")
+          prev.classList.add("popupable-nav-disabled")
         }
         if (group.currentIndex === group.length - 1) {
-          next.classList.add("popupable-disabled")
+          next.classList.add("popupable-nav-disabled")
         } else {
-          next.classList.remove("popupable-disabled")
+          next.classList.remove("popupable-nav-disabled")
         }
         for (const [i, clone] of group.entries()) {
           const index = i - group.currentIndex
@@ -637,9 +638,6 @@
       }
 
       recalculateVisible()
-      if (hideNavOnInactivity) {
-        scheduleNavHide()
-      }
 
       activePopup.listeners.push(
         {
@@ -913,7 +911,7 @@
             event: "pointerleave",
             func: () => {
               navHovered = false
-              scheduleNavHide()
+              activePopup.scheduleNavHide()
             }
           },
           {
@@ -921,7 +919,7 @@
             event: "pointerleave",
             func: () => {
               navHovered = false
-              scheduleNavHide()
+              activePopup.scheduleNavHide()
             }
           }
         )
