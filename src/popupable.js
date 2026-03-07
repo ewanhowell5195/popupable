@@ -41,12 +41,29 @@
     if (keys.includes(e.key)) e.preventDefault()
   }
 
+  const animTypes = {
+    expand(original) {
+      const rect = original.getBoundingClientRect()
+      return {
+        top: visualViewport.offsetTop + rect.top,
+        left: visualViewport.offsetLeft + rect.left,
+        width: rect.width,
+        height: rect.height,
+        hideOriginal: true
+      }
+    }
+  }
+
   function setCloneToOriginalRect(cloneContainer, original) {
-    const rect = original.getBoundingClientRect()
-    cloneContainer.style.top = visualViewport.offsetTop + rect.top + "px"
-    cloneContainer.style.left = visualViewport.offsetLeft + rect.left + "px"
-    cloneContainer.style.width = rect.width + "px"
-    cloneContainer.style.height = rect.height + "px"
+    let result = animTypes.expand(original)
+    if (window.popupableStartLocation) {
+      result = window.popupableStartLocation(original, result)
+    }
+    cloneContainer.style.top = result.top + "px"
+    cloneContainer.style.left = result.left + "px"
+    cloneContainer.style.width = result.width + "px"
+    cloneContainer.style.height = result.height + "px"
+    return result.hideOriginal
   }
 
   function openPopupable(toOpen) {
@@ -1037,9 +1054,10 @@
       return
     }
 
-    setCloneToOriginalRect(cloneContainer, original)
+    if (setCloneToOriginalRect(cloneContainer, original)) {
+      original.classList.add("popupable-hide")
+    }
     document.body.append(popup)
-    original.classList.add("popupable-hide")
     disableScroll()
 
     const styles = getComputedStyle(popup)
