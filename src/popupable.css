@@ -287,8 +287,8 @@
   text-align: center;
 }
 
-.popupable-header > * + *,
-.popupable-footer > * + * {
+.popupable-counter + .popupable-thumbnails,
+.popupable-thumbnails + .popupable-counter {
   border-top: 1px solid #fff3;
 }
 
@@ -298,41 +298,6 @@
   transition: height var(--popupable-switch-duration);
   overflow: hidden;
   position: relative;
-}
-
-.popupable-thumbnails {
-  display: flex;
-  gap: 10px;
-  padding: 10px;
-  justify-content: safe center;
-  overflow: hidden;
-  scrollbar-width: none;
-  touch-action: pan-x;
-}
-
-.popupable-thumbnails.popupable-thumbnails-dragging {
-  cursor: grabbing;
-}
-
-.popupable-thumbnail {
-  width: 64px;
-  height: 64px;
-  object-fit: cover;
-  opacity: 0.65;
-  cursor: pointer;
-  transition: opacity .2s, outline-color .2s;
-  outline: 2px solid #0000;
-  outline-offset: -2px;
-  flex: 0 0 auto;
-}
-
-.popupable-thumbnail:hover {
-  opacity: 1;
-}
-
-.popupable-thumbnail.popupable-thumbnail-active {
-  opacity: 1;
-  outline-color: #fffa;
 }
 
 .popupable-content {
@@ -371,6 +336,69 @@
   transform: translateX(calc(-50% + 80px));
 }
 
+.popupable-content-container:not(:first-child) .popupable-content {
+  padding-top: 17px;
+}
+
+.popupable-content-container:not(:last-child) .popupable-content {
+  padding-bottom: 17px;
+}
+
+.popupable-content-container:not(:first-child)::before {
+  content: "";
+  position: absolute;
+  height: 1px;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff3;
+}
+
+.popupable-content-container:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: #fff3;
+}
+
+.popupable-thumbnails {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  justify-content: safe center;
+  overflow: hidden;
+  scrollbar-width: none;
+  touch-action: pan-x;
+}
+
+.popupable-thumbnails.popupable-thumbnails-dragging {
+  cursor: grabbing;
+}
+
+.popupable-thumbnail {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  opacity: 0.65;
+  cursor: pointer;
+  transition: opacity .2s, outline-color .2s;
+  outline: 2px solid #0000;
+  outline-offset: -2px;
+  flex: 0 0 auto;
+}
+
+.popupable-thumbnail:hover {
+  opacity: 1;
+}
+
+.popupable-thumbnail.popupable-thumbnail-active {
+  opacity: 1;
+  outline-color: #fffa;
+}
+
 .popupable-zoomable {
   cursor: zoom-in;
 }
@@ -406,6 +434,14 @@
   .popupable-content {
     padding: 14px;
     gap: 6px;
+  }
+
+  .popupable-content-container:not(:first-child) .popupable-content {
+    padding-top: 15px;
+  }
+
+  .popupable-content-container:not(:last-child) .popupable-content {
+    padding-bottom: 15px;
   }
 
   .popupable-title {

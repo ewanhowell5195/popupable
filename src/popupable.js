@@ -184,7 +184,10 @@
       }
 
       const cloneMaxH = Math.max(0, maxH)
-      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale : 0
+      const contentContainerEl = activePopup.contentContainer
+      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale
+        : contentContainerEl?.previousElementSibling && contentContainerEl?.nextElementSibling ? parseFloat(getComputedStyle(contentContainerEl, '::after').height) || 0
+        : 0
       const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
       const topReserved = (activePopup.orderPlacement.counterTop ? counterHeight : 0) + (activePopup.orderPlacement.contentTop ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsTop ? thumbnailHeight : 0)
       const bottomReserved = (activePopup.orderPlacement.counterBottom ? counterHeight : 0) + (activePopup.orderPlacement.contentBottom ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsBottom ? thumbnailHeight : 0)
@@ -234,8 +237,14 @@
       } else {
         active = activePopup
       }
-      const rect = active.content.getBoundingClientRect()
-      activePopup.contentContainer.style.height = rect.height / uiScale + "px"
+      if (!active.content) {
+        const el = activePopup.contentContainer
+        const afterH = el.previousElementSibling && el.nextElementSibling ? parseFloat(getComputedStyle(el, "::after").height) || 0 : 0
+        el.style.height = afterH + "px"
+      } else {
+        const rect = active.content.getBoundingClientRect()
+        activePopup.contentContainer.style.height = rect.height / uiScale + "px"
+      }
     }
   }
 
