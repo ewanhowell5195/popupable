@@ -28,10 +28,22 @@
   initial-value: .25s;
 }
 
+@property --popupable-open-easing {
+  syntax: "*";
+  inherits: true;
+  initial-value: ease;
+}
+
 @property --popupable-switch-duration {
   syntax: "<time>";
   inherits: true;
   initial-value: .25s;
+}
+
+@property --popupable-switch-easing {
+  syntax: "*";
+  inherits: true;
+  initial-value: ease;
 }
 
 [data-popupable],
@@ -55,7 +67,7 @@
 .popupable-container {
   position: fixed;
   inset: 0;
-  transition: background var(--popupable-open-duration), backdrop-filter var(--popupable-open-duration);
+  transition: background var(--popupable-open-duration) ease, backdrop-filter var(--popupable-open-duration) ease;
   z-index: 2147483646;
   user-select: none;
   pointer-events: none;
@@ -98,12 +110,12 @@
 }
 
 .popupable-clones {
-  transition: transform var(--popupable-switch-duration);
+  transition: transform var(--popupable-switch-duration) var(--popupable-switch-easing);
 }
 
 .popupable-clone-container {
   position: fixed;
-  transition: all var(--popupable-open-duration);
+  transition: all var(--popupable-open-duration) var(--popupable-open-easing);
   pointer-events: initial;
   overflow: hidden;
   transform: translateX(calc(var(--popupable-view-width) * var(--popupable-offset-multiplier)));
@@ -119,7 +131,7 @@
   background-attachment: fixed;
   z-index: -1;
   opacity: 0;
-  transition: opacity var(--popupable-open-duration);
+  transition: opacity var(--popupable-open-duration) var(--popupable-open-easing);
   image-rendering: pixelated;
 }
 
@@ -137,7 +149,7 @@
 }
 
 .popupable-container.popupable-open .popupable-clone-container {
-  transition: transform var(--popupable-switch-duration), translate var(--popupable-switch-duration);
+  transition: transform var(--popupable-switch-duration) var(--popupable-switch-easing), translate var(--popupable-switch-duration) var(--popupable-switch-easing);
 }
 
 .popupable-clone,
@@ -146,7 +158,7 @@
   height: 100%;
   position: absolute;
   inset: 0;
-  transition: opacity var(--popupable-open-duration);
+  transition: opacity var(--popupable-open-duration) var(--popupable-open-easing);
 }
 
 .popupable-clone-layer {
@@ -168,7 +180,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: opacity var(--popupable-open-duration), transform var(--popupable-open-duration);
+  transition: opacity var(--popupable-open-duration) var(--popupable-open-easing), transform var(--popupable-open-duration) var(--popupable-open-easing);
   cursor: pointer;
   position: relative;
   opacity: 0;
@@ -283,7 +295,7 @@
   left: 0;
   right: 0;
   opacity: 0;
-  transition: opacity var(--popupable-open-duration), transform var(--popupable-open-duration);
+  transition: opacity var(--popupable-open-duration) var(--popupable-open-easing), transform var(--popupable-open-duration) var(--popupable-open-easing);
   transform: translateY(-40px);
   color: #fff;
   background: var(--popupable-ui-background);
@@ -315,7 +327,7 @@
 .popupable-content-container {
   display: grid;
   align-items: flex-end;
-  transition: height var(--popupable-switch-duration);
+  transition: height var(--popupable-switch-duration) var(--popupable-switch-easing);
   overflow: hidden;
   position: relative;
 }
@@ -330,7 +342,7 @@
   flex-direction: column;
   gap: 8px;
   user-select: text;
-  transition: opacity var(--popupable-switch-duration), transform var(--popupable-switch-duration);
+  transition: opacity var(--popupable-switch-duration) var(--popupable-switch-easing), transform var(--popupable-switch-duration) var(--popupable-switch-easing);
   position: absolute;
   bottom: 0;
   left: 50%;
