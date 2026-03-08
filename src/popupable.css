@@ -221,14 +221,9 @@
 
 .popupable-close-container {
   position: absolute;
-  top: 0;
+  bottom: 0;
   right: 0;
   padding: 20px;
-}
-
-.popupable-header .popupable-close-container {
-  top: initial;
-  bottom: 0;
   transform: translateY(100%);
 }
 
@@ -240,7 +235,7 @@
   transform: translateX(-40px);
 }
 
-.popupable-header > .popupable-close-container .popupable-close {
+.popupable-close {
   transform: translateY(40px);
 }
 

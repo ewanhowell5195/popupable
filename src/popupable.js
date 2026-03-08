@@ -545,7 +545,7 @@
     viewportLayer.className = "popupable-viewport"
 
     let contentContainer
-    if (content) {
+    if (content || (group && group.some(c => c.content))) {
       contentContainer = document.createElement("div")
       contentContainer.classList = "popupable-content-container"
     }
@@ -1034,15 +1034,11 @@
     const topOrder = cloneObj.order.top.filter(token => enabledOrderItems[token])
     const bottomOrder = cloneObj.order.bottom.filter(token => enabledOrderItems[token])
 
-    if (topOrder.length) {
-      header = document.createElement("div")
-      header.className = "popupable-header"
-    }
+    header = document.createElement("div")
+    header.className = "popupable-header"
 
-    if (bottomOrder.length) {
-      footer = document.createElement("div")
-      footer.className = "popupable-footer"
-    }
+    footer = document.createElement("div")
+    footer.className = "popupable-footer"
 
     function appendOrderedUiItem(container, token) {
       if (!container) return
@@ -1066,8 +1062,8 @@
       appendOrderedUiItem(footer, token)
     }
 
-    if (header) viewportLayer.append(header)
-    if (footer) viewportLayer.append(footer)
+    viewportLayer.append(header)
+    viewportLayer.append(footer)
 
     const closeContainer = document.createElement("div")
     closeContainer.className = "popupable-button-container popupable-close-container"
@@ -1078,11 +1074,7 @@
       closeContainer.classList.add("popupable-button-inactive")
     }
 
-    if (header) {
-      header.append(closeContainer)
-    } else {
-      viewportLayer.append(closeContainer)
-    }
+    header.append(closeContainer)
 
     popup.append(cloneList, viewportLayer)
 
