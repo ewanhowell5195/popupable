@@ -1136,7 +1136,7 @@
       popup.classList.add("popupable-locked")
 
       let x, y, scale = initialScale
-      const minScale = 1
+      const minScale = 0.5
       const maxScale = 6
       const pointers = new Map()
       let panPointerId, panLastX, panLastY, pinchLastCenterX, pinchLastCenterY, pinchLastDistance
