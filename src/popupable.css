@@ -123,8 +123,13 @@
   image-rendering: pixelated;
 }
 
+.popupable-anim-pop .popupable-clone-container {
+  opacity: 0;
+}
+
 .popupable-container.popupable-active .popupable-clone-container {
   border-radius: 0 !important;
+  opacity: 1;
 }
 
 .popupable-container.popupable-active .popupable-clone-container.popupable-transparent::before {

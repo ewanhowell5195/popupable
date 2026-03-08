@@ -41,29 +41,115 @@
     if (keys.includes(e.key)) e.preventDefault()
   }
 
-  const animTypes = {
-    expand(original) {
+  function calcExpandedRect(clone) {
+    const original = clone.original
+    const viewportWidth = visualViewport?.width || window.innerWidth
+    const viewportHeight = visualViewport?.height || window.innerHeight
+    const viewportOffsetTop = visualViewport?.offsetTop || 0
+    const viewportOffsetLeft = visualViewport?.offsetLeft || 0
+    const viewportScale = visualViewport?.scale || 1
+    const uiScale = 1 / viewportScale
+    const paddingSource = activePopup.popup
+    const basePadding = parseFloat(getComputedStyle(paddingSource).getPropertyValue("--popupable-screen-padding")) || 40
+    const padding = basePadding / viewportScale
+    const maxW = Math.max(0, viewportWidth - padding * 2)
+    const maxH = viewportHeight - padding * 2
+    const cloneMaxH = Math.max(0, maxH)
+
+    let aspect
+    if (clone.maintainAspect) {
       const rect = original.getBoundingClientRect()
+      aspect = rect.width / rect.height
+    } else {
+      const source = clone.cloneLayer || original
+      aspect = (source.naturalWidth / source.naturalHeight) || 1
+    }
+
+    let topReserved = 0
+    let bottomReserved = 0
+    if (activePopup.orderPlacement) {
+      const counter = activePopup.popup.querySelector(".popupable-counter")
+      const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
+      const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
+      const contentContainerEl = activePopup.contentContainer
+      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale
+        : contentContainerEl?.previousElementSibling && contentContainerEl?.nextElementSibling ? parseFloat(getComputedStyle(contentContainerEl, "::after").height) || 0
+        : 0
+      const { counterTop, contentTop, thumbnailsTop, counterBottom, contentBottom, thumbnailsBottom } = activePopup.orderPlacement
+      topReserved = (counterTop ? counterHeight : 0) + (contentTop ? contentHeight : 0) + (thumbnailsTop ? thumbnailHeight : 0)
+      bottomReserved = (counterBottom ? counterHeight : 0) + (contentBottom ? contentHeight : 0) + (thumbnailsBottom ? thumbnailHeight : 0)
+    }
+
+    const constrainedMaxH = Math.max(0, viewportHeight - topReserved - bottomReserved - padding * 2)
+    let finalW = maxW
+    let finalH = finalW / aspect
+    if (finalH > cloneMaxH) {
+      finalH = cloneMaxH
+      finalW = finalH * aspect
+    }
+    if (finalH > constrainedMaxH) {
+      finalH = constrainedMaxH
+      finalW = finalH * aspect
+    }
+    if (clone.noUpscale) {
+      const noUpscaleSource = clone.cloneLayer || original
+      const sourceW = noUpscaleSource.naturalWidth
+      const sourceH = noUpscaleSource.naturalHeight
+      if (sourceW && sourceH) {
+        const effectiveSourceW = sourceW / viewportScale
+        const effectiveSourceH = sourceH / viewportScale
+        const noUpscaleMultiplier = Math.min(1, effectiveSourceW / finalW, effectiveSourceH / finalH)
+        if (noUpscaleMultiplier < 1) {
+          finalW *= noUpscaleMultiplier
+          finalH *= noUpscaleMultiplier
+        }
+      }
+    }
+    let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
+    const maxTop = viewportOffsetTop + viewportHeight - bottomReserved - padding - finalH
+    finalTop = Math.min(finalTop, maxTop)
+    finalTop = Math.max(finalTop, viewportOffsetTop + topReserved + padding)
+    return {
+      top: finalTop,
+      left: viewportOffsetLeft + padding + (maxW - finalW) / 2,
+      width: finalW,
+      height: finalH
+    }
+  }
+
+  const animTypes = {
+    expand(el) {
+      const rect = el.getBoundingClientRect()
       return {
         top: visualViewport.offsetTop + rect.top,
         left: visualViewport.offsetLeft + rect.left,
         width: rect.width,
         height: rect.height,
-        hideOriginal: true
+        hideSource: true
+      }
+    },
+    pop(original, { top, left, width, height }) {
+      return {
+        top: top + height * 0.05,
+        left: left + width * 0.05,
+        width: width * 0.9,
+        height: height * 0.9
       }
     }
   }
 
   function setCloneToOriginalRect(cloneContainer, original) {
-    let result = animTypes.expand(original)
+    const animType = original.dataset.popupableAnim ?? "expand"
+    const after = calcExpandedRect(activePopup)
+    let result = (animTypes[animType] ?? animTypes.expand)(original, after)
     if (window.popupableStartLocation) {
-      result = window.popupableStartLocation(original, result)
+      result = window.popupableStartLocation(original, result, after)
     }
     cloneContainer.style.top = result.top + "px"
     cloneContainer.style.left = result.left + "px"
     cloneContainer.style.width = result.width + "px"
     cloneContainer.style.height = result.height + "px"
-    return result.hideOriginal
+    return result.hideSource
   }
 
   function openPopupable(toOpen) {
@@ -170,15 +256,7 @@
     activePopup.popup.style.setProperty("--popupable-vv-left", viewportOffsetLeft + "px")
     activePopup.popup.style.setProperty("--popupable-vv-scale", viewportScale)
     activePopup.popup.style.setProperty("--popupable-vv-ui-scale", 1 / viewportScale)
-    const uiScale = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-vv-ui-scale")) || 1
-
-    const basePadding = parseFloat(getComputedStyle(activePopup.popup).getPropertyValue("--popupable-screen-padding")) || 0
-    const padding = basePadding / viewportScale
-
-    const maxW = Math.max(0, viewportWidth - padding * 2)
-    const maxH = viewportHeight - padding * 2
-    const counter = activePopup.popup.querySelector(".popupable-counter")
-    const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
+    const uiScale = 1 / viewportScale
 
     let clones
     if (activePopup.group) {
@@ -188,63 +266,11 @@
     }
 
     for (const clone of clones) {
-      let aspect
-      if (clone.maintainAspect) {
-        const rect = clone.original.getBoundingClientRect()
-        aspect = rect.width / rect.height
-      } else {
-        if (clone.cloneLayer) {
-          aspect = clone.cloneLayer.naturalWidth / clone.cloneLayer.naturalHeight
-        } else {
-          aspect = clone.original.naturalWidth / clone.original.naturalHeight
-        }
-      }
-
-      const cloneMaxH = Math.max(0, maxH)
-      const contentContainerEl = activePopup.contentContainer
-      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale
-        : contentContainerEl?.previousElementSibling && contentContainerEl?.nextElementSibling ? parseFloat(getComputedStyle(contentContainerEl, '::after').height) || 0
-        : 0
-      const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
-      const topReserved = (activePopup.orderPlacement.counterTop ? counterHeight : 0) + (activePopup.orderPlacement.contentTop ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsTop ? thumbnailHeight : 0)
-      const bottomReserved = (activePopup.orderPlacement.counterBottom ? counterHeight : 0) + (activePopup.orderPlacement.contentBottom ? contentHeight : 0) + (activePopup.orderPlacement.thumbnailsBottom ? thumbnailHeight : 0)
-      const constrainedMaxH = Math.max(0, viewportHeight - topReserved - bottomReserved - padding * 2)
-
-      let finalW = maxW
-      let finalH = finalW / aspect
-
-      if (finalH > cloneMaxH) {
-        finalH = cloneMaxH
-        finalW = finalH * aspect
-      }
-      if (finalH > constrainedMaxH) {
-        finalH = constrainedMaxH
-        finalW = finalH * aspect
-      }
-      if (clone.noUpscale) {
-        const source = clone.cloneLayer || clone.original
-        const sourceW = source.naturalWidth
-        const sourceH = source.naturalHeight
-        if (sourceW && sourceH) {
-          const effectiveSourceW = sourceW / viewportScale
-          const effectiveSourceH = sourceH / viewportScale
-          const noUpscaleMultiplier = Math.min(1, effectiveSourceW / finalW, effectiveSourceH / finalH)
-          if (noUpscaleMultiplier < 1) {
-            finalW *= noUpscaleMultiplier
-            finalH *= noUpscaleMultiplier
-          }
-        }
-      }
-
-      let finalTop = viewportOffsetTop + padding + (cloneMaxH - finalH) / 2
-      const maxTop = viewportOffsetTop + viewportHeight - bottomReserved - padding - finalH
-      finalTop = Math.min(finalTop, maxTop)
-      finalTop = Math.max(finalTop, viewportOffsetTop + topReserved + padding)
-
-      clone.cloneContainer.style.top = finalTop + "px"
-      clone.cloneContainer.style.left = viewportOffsetLeft + padding + (maxW - finalW) / 2 + "px"
-      clone.cloneContainer.style.width = finalW + "px"
-      clone.cloneContainer.style.height = finalH + "px"
+      const { top, left, width, height } = calcExpandedRect(clone)
+      clone.cloneContainer.style.top = top + "px"
+      clone.cloneContainer.style.left = left + "px"
+      clone.cloneContainer.style.width = width + "px"
+      clone.cloneContainer.style.height = height + "px"
     }
 
     if (activePopup.contentContainer) {
@@ -465,8 +491,9 @@
     }
     e.preventDefault()
 
-    if (activePopup?.original === original && activePopup.popup && !activePopup.popup.isConnected && activePopup.state !== "close") {
-      return
+    if (activePopup && activePopup.state !== "close") {
+      if (activePopup.original === original) return
+      if (activePopup.group?.some(item => item.original === original)) return
     }
 
     const loadToken = ++popupLoadToken
@@ -510,7 +537,7 @@
     }
 
     const popup = document.createElement("div")
-    popup.className = "popupable-container"
+    popup.className = `popupable-container popupable-anim-${original.dataset.popupableAnim ?? "expand"}`
     if (cloneObj.id) {
       popup.id = cloneObj.id
     }
@@ -676,7 +703,7 @@
         recalculateVisible()
       }
 
-      recalculateVisible()
+      requestAnimationFrame(recalculateVisible)
 
       activePopup.listeners.push(
         {
@@ -1054,10 +1081,10 @@
       return
     }
 
+    document.body.append(popup)
     if (setCloneToOriginalRect(cloneContainer, original)) {
       original.classList.add("popupable-hide")
     }
-    document.body.append(popup)
     disableScroll()
 
     const styles = getComputedStyle(popup)
