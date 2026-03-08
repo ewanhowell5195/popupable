@@ -575,15 +575,15 @@
       }
 
       viewportLayer.innerHTML = `
-        <div class="popupable-prev-container${!group.currentIndex ? " popupable-nav-disabled" : ""}">
-          <div class="popupable-button popupable-nav-button popupable-prev">
+        <div class="popupable-button-container popupable-prev-container${!group.currentIndex ? " popupable-button-disabled" : ""}">
+          <div class="popupable-button popupable-prev">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/>
             </svg>
           </div>
         </div>
-        <div class="popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-nav-disabled" : ""}">
-          <div class="popupable-button popupable-nav-button popupable-next">
+        <div class="popupable-button-container popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-button-disabled" : ""}">
+          <div class="popupable-button popupable-next">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
               <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/>
             </svg>
@@ -601,34 +601,34 @@
         if (navHovered) return
         navHideTimeout = setTimeout(() => {
           if (navHovered) return
-          next.classList.add("popupable-nav-inactive")
-          prev.classList.add("popupable-nav-inactive")
+          next.classList.add("popupable-button-inactive")
+          prev.classList.add("popupable-button-inactive")
         }, 1500)
       }
 
       function showNav() {
-        next.classList.remove("popupable-nav-inactive")
-        prev.classList.remove("popupable-nav-inactive")
+        next.classList.remove("popupable-button-inactive")
+        prev.classList.remove("popupable-button-inactive")
         activePopup.scheduleNavHide()
       }
 
       activePopup.clearNavInactive = () => {
-        next.classList.remove("popupable-nav-inactive")
-        prev.classList.remove("popupable-nav-inactive")
+        next.classList.remove("popupable-button-inactive")
+        prev.classList.remove("popupable-button-inactive")
       }
 
       async function recalculateVisible() {
         const current = group[group.currentIndex]
         await current.ready
         if (group.currentIndex) {
-          prev.classList.remove("popupable-nav-disabled")
+          prev.classList.remove("popupable-button-disabled")
         } else {
-          prev.classList.add("popupable-nav-disabled")
+          prev.classList.add("popupable-button-disabled")
         }
         if (group.currentIndex === group.length - 1) {
-          next.classList.add("popupable-nav-disabled")
+          next.classList.add("popupable-button-disabled")
         } else {
-          next.classList.remove("popupable-nav-disabled")
+          next.classList.remove("popupable-button-disabled")
         }
         for (const [i, clone] of group.entries()) {
           const index = i - group.currentIndex
@@ -688,6 +688,7 @@
             hasPositionedThumbnails = true
           })
         }
+        activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable)
         updateExpandedSize()
       }
 
@@ -1067,9 +1068,25 @@
 
     if (header) viewportLayer.append(header)
     if (footer) viewportLayer.append(footer)
+
+    const closeContainer = document.createElement("div")
+    closeContainer.className = "popupable-button-container popupable-close-container"
+    closeContainer.innerHTML = `<div class="popupable-button popupable-close"><svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></div>`
+    closeContainer.addEventListener("click", closePopupable)
+
+    if (!cloneObj.zoomable) {
+      closeContainer.classList.add("popupable-button-inactive")
+    }
+
+    if (header) {
+      header.append(closeContainer)
+    } else {
+      viewportLayer.append(closeContainer)
+    }
+
     popup.append(cloneList, viewportLayer)
 
-    Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, goNext, goPrev })
+    Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, closeContainer, goNext, goPrev })
 
     const loadingTimer = setTimeout(() => {
       if (loadToken === popupLoadToken) original.classList.add("popupable-loading")
