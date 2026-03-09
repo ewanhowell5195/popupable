@@ -135,7 +135,7 @@
   image-rendering: pixelated;
 }
 
-.popupable-anim-pop .popupable-clone-container {
+.popupable-fade .popupable-clone-container {
   opacity: 0;
 }
 

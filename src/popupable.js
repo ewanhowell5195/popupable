@@ -134,7 +134,8 @@
         top: top + height * 0.05,
         left: left + width * 0.05,
         width: width * 0.9,
-        height: height * 0.9
+        height: height * 0.9,
+        fade: true
       }
     }
   }
@@ -1090,10 +1091,12 @@
       return
     }
 
+    cloneContainer.style.transition = "initial"
     document.body.append(popup)
-    const { hideSource, crossfade } = setCloneToOriginalRect(cloneContainer, original)
+    const { hideSource, crossfade, fade } = setCloneToOriginalRect(cloneContainer, original)
     if (hideSource) original.classList.add("popupable-hide")
     if (crossfade) popup.classList.add("popupable-crossfade")
+    if (fade) popup.classList.add("popupable-fade")
     disableScroll()
 
     const styles = getComputedStyle(popup)
@@ -1103,6 +1106,7 @@
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
+        cloneContainer.style.transition = null
         openPopupable(popup._state)
       })
     })
