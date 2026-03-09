@@ -489,9 +489,8 @@
     }
     e.preventDefault()
 
-    if (activePopup && activePopup.state !== "close") {
-      if (activePopup.original === original) return
-      if (activePopup.group?.some(item => item.original === original)) return
+    if (activePopup && activePopup.state !== "close" && activePopup.original === original) {
+      return
     }
 
     const loadToken = ++popupLoadToken
