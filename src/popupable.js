@@ -137,6 +137,24 @@
         height: height * 0.9,
         fade: true
       }
+    },
+    line(original, { top, left, width, height }) {
+      return {
+        top: top + height / 2,
+        left: left + width * 0.05,
+        width: width * 0.9,
+        height: 0,
+        fade: true
+      }
+    },
+    float(original, { top, left, width, height }) {
+      return {
+        top: top + 40,
+        left,
+        width,
+        height,
+        fade: true
+      }
     }
   }
 
