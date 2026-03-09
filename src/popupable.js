@@ -117,7 +117,7 @@
     }
   }
 
-  const animTypes = {
+  window.popupableAnimTypes = {
     expand(el) {
       const rect = el.getBoundingClientRect()
       return {
@@ -129,7 +129,7 @@
         crossfade: true
       }
     },
-    pop(original, { top, left, width, height } = {}) {
+    pop(original, { top, left, width, height }) {
       return {
         top: top + height * 0.05,
         left: left + width * 0.05,
@@ -141,10 +141,7 @@
 
   function setCloneToOriginalRect(cloneContainer, original) {
     const after = calcExpandedRect(activePopup)
-    let result = (animTypes[activePopup.animation])(original, after)
-    if (window.popupableStartLocation) {
-      result = window.popupableStartLocation(original, result, after)
-    }
+    const result = (popupableAnimTypes[activePopup.animation])(original, after)
     cloneContainer.style.top = result.top + "px"
     cloneContainer.style.left = result.left + "px"
     cloneContainer.style.width = result.width + "px"
