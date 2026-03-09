@@ -343,7 +343,7 @@
 
     const clone = new Image()
     clone.className = "popupable-clone"
-    clone.src = baseSrc ?? original.currentSrc ?? original.src
+    clone.src = baseSrc || original.currentSrc || original.src
 
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
@@ -541,7 +541,7 @@
             group.currentIndex = i
             cloneList.append(cloneContainer)
           } else {
-            const clone = cloneElement(orig, original.currentSrc ?? original.src)
+            const clone = cloneElement(orig, original.currentSrc || original.src)
             clone.cloneContainer.style.display = "none"
             group.push(clone)
             cloneList.append(clone.cloneContainer)
@@ -586,7 +586,7 @@
         thumbnailItems = group.map((entry, i) => {
           const thumbnail = new Image()
           thumbnail.className = "popupable-thumbnail"
-          thumbnail.src = entry.original.currentSrc ?? entry.original.src
+          thumbnail.src = entry.original.currentSrc || entry.original.src
           thumbnail.dataset.thumbnailIndex = i
           thumbnailsContainer.append(thumbnail)
           return thumbnail
