@@ -244,9 +244,71 @@
       image-rendering: auto !important;
     }
 
+    .anim-picker {
+      display: inline-flex;
+      background: #e0e0e0;
+      border-radius: 8px;
+      padding: 4px;
+    }
+
+    .anim-option {
+      display: flex;
+      align-items: center;
+      padding: 8px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: #555;
+      transition: background 0.15s ease, color 0.15s ease;
+      user-select: none;
+      font-family: 'Courier New', monospace;
+    }
+
+    .anim-option:has(input:checked) {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .anim-option input {
+      display: none;
+    }
+
+    .anim-examples {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .anim-examples figure {
+      margin: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .anim-examples figcaption {
+      font-size: 0.85rem;
+      color: #666;
+      text-align: center;
+      font-family: 'Courier New', monospace;
+    }
+
+    .anim-examples img {
+      width: 100%;
+      aspect-ratio: 4 / 3;
+      object-fit: cover;
+      border-radius: 6px;
+      display: block;
+    }
+
     @media (max-width: 768px) {
       .image-grid {
         display: grid;
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .anim-examples {
         grid-template-columns: 1fr 1fr;
       }
     }
@@ -359,6 +421,40 @@
                style="image-rendering: pixelated;">
         </div>
         <pre>&lt;img src="thumbnail.webp" data-popupable data-popupable-src="full-res.webp"&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Animation Styles</h2>
+        <p>Use <code>data-popupable-anim</code> to control the open and close animation.</p>
+        <div class="anim-examples">
+          <figure>
+            <img src="https://picsum.photos/id/10/800/600.webp" data-popupable data-popupable-anim="expand" data-anim-fixed>
+            <figcaption>expand</figcaption>
+          </figure>
+          <figure>
+            <img src="https://picsum.photos/id/65/800/600.webp" data-popupable data-popupable-anim="pop" data-anim-fixed>
+            <figcaption>pop</figcaption>
+          </figure>
+          <figure>
+            <img src="https://picsum.photos/id/106/800/600.webp" data-popupable data-popupable-anim="line" data-anim-fixed>
+            <figcaption>line</figcaption>
+          </figure>
+          <figure>
+            <img src="https://picsum.photos/id/155/800/600.webp" data-popupable data-popupable-anim="float" data-anim-fixed>
+            <figcaption>float</figcaption>
+          </figure>
+        </div>
+        <pre>&lt;img src="image.webp" data-popupable data-popupable-anim="expand"&gt;
+&lt;img src="image.webp" data-popupable data-popupable-anim="pop"&gt;
+&lt;img src="image.webp" data-popupable data-popupable-anim="line"&gt;
+&lt;img src="image.webp" data-popupable data-popupable-anim="float"&gt;</pre>
+        <p style="margin-top: 40px;">Use the toggle below to change the animation style on all images on this page.</p>
+        <div class="anim-picker">
+          <label class="anim-option"><input type="radio" name="global-anim" value="expand" checked> expand</label>
+          <label class="anim-option"><input type="radio" name="global-anim" value="pop"> pop</label>
+          <label class="anim-option"><input type="radio" name="global-anim" value="line"> line</label>
+          <label class="anim-option"><input type="radio" name="global-anim" value="float"> float</label>
+        </div>
       </div>
 
       <div class="section">
@@ -538,7 +634,9 @@
     --popupable-ui-background: #0008;  /* Header, footer, and button background */
     --popupable-screen-padding: 40px;  /* Gap between image and viewport edge */
     --popupable-open-duration: .25s;   /* Open/close transition duration */
+    --popupable-open-easing: ease;     /* Open/close transition easing */
     --popupable-switch-duration: .25s; /* Gallery navigation transition duration */
+    --popupable-switch-easing: ease;   /* Gallery navigation transition easing */
   }
 &lt;/style&gt;</pre>
       </div>
@@ -563,6 +661,14 @@
         }
       }
     })
+
+    for (const radio of document.querySelectorAll('[name="global-anim"]')) {
+      radio.addEventListener("change", () => {
+        for (const img of document.querySelectorAll("[data-popupable]:not([data-anim-fixed])")) {
+          img.setAttribute("data-popupable-anim", radio.value)
+        }
+      })
+    }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/popupable/dist/popupable.min.js"></script>
 </body>

@@ -13,13 +13,14 @@ Just add `data-popupable` to any image!
 
 * No dependencies
 * Animates open from the element's original position
+* Multiple built-in animation styles, with support for custom ones
 * Works with mouse, touch, and keyboard
 * Gallery groups with swipe, scroll, keyboard, and button navigation
 * Thumbnail strip and image counter
 * Pinch-to-zoom on touch, with optional click/tap-to-zoom support
-* Load a hi-res image on open
 * Checkerboard background for transparent images
 * Customizable via CSS variables
+* Works in Vue, React, Svelte, and more
 
 ## Quick Start
 
@@ -58,10 +59,11 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-maintain-aspect` | Uses the element's rendered aspect ratio instead of the image's natural dimensions. |
 | `data-popupable-no-upscale` | Prevents the popup from scaling the image beyond its native resolution. |
 | `data-popupable-zoomable` | Enables click/tap-to-zoom and scroll wheel zoom. |
+| `data-popupable-anim="name"` | Sets the open/close animation style. |
 | `data-popupable-group="name"` | Groups images into a navigable gallery. |
 | `data-popupable-counter` | Shows a "1 / N" counter when in a group. Read from the clicked image. |
 | `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. Read from the clicked image. |
-| `data-popupable-order="..."` | Controls the order of UI elements. See [Custom UI order](#custom-ui-order). |
+| `data-popupable-order="..."` | Controls the order of UI elements. |
 
 ## Advanced Usage
 
@@ -105,7 +107,7 @@ All images support pinch-to-zoom. Add `data-popupable-zoomable` to also enable t
 <img src="map.jpg" data-popupable data-popupable-zoomable>
 ```
 
-When zoomed in, pan by dragging and zoom in/out with the scroll wheel. Click the image or background, or pinch back to scale 1, to unzoom.
+When zoomed in, pan by dragging and zoom in/out with the scroll wheel. Click the image or background, or pinch back to scale 1, to unzoom. A close button also appears in the corner when `data-popupable-zoomable` is set.
 
 ### Groups / Galleries
 
@@ -117,7 +119,7 @@ Group multiple images together with `data-popupable-group`. Users can navigate w
 <img src="photo3.jpg" data-popupable data-popupable-group="holiday">
 ```
 
-###Counter and thumbnails
+### Counter and thumbnails
 
 Add `data-popupable-counter` and/or `data-popupable-thumbnails` to individual group members. The attributes are read from whichever image is clicked to open the gallery, so add them to every image that should show these elements:
 
@@ -127,7 +129,7 @@ Add `data-popupable-counter` and/or `data-popupable-thumbnails` to individual gr
 <img src="photo3.jpg" data-popupable data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
 ```
 
-###Custom UI order
+### Custom UI order
 
 Control the order of UI elements around the image with `data-popupable-order`. The `image` token marks where the image sits; everything before it goes in the header, everything after goes in the footer.
 
@@ -138,7 +140,7 @@ Control the order of UI elements around the image with `data-popupable-order`. T
 
 Default order: `counter,image,content,thumbnails`
 
-###Keyboard navigation
+### Keyboard navigation
 
 | Keys | Action |
 |---|---|
@@ -164,6 +166,47 @@ Set the value of `data-popupable` to give the popup a CSS `id`, useful for per-p
 #theme-blue  { --popupable-background: #00003acc; }
 ```
 
+### Animation styles
+
+Use `data-popupable-anim` to choose an open/close animation style. The default is `expand`.
+
+| Value | Description |
+|---|---|
+| `expand` | Expands from the image's original position (default) |
+| `pop` | Scales up from a slightly smaller version at the final position |
+| `line` | Expands vertically from a thin horizontal line at the center, like a CRT TV powering on |
+| `float` | Fades in while rising upward into position |
+
+```html
+<img src="photo.jpg" data-popupable data-popupable-anim="line">
+```
+
+The popup container receives a `popupable-anim-{name}` class (e.g. `popupable-anim-float`), which can be used to apply custom CSS for that animation style.
+
+#### Custom animation styles
+
+Register your own animation style by adding a function to `window.popupableAnimTypes`. The function receives the original element and the final expanded rect `{ top, left, width, height }`, and returns an object describing the starting rect for the open animation (which is also the ending rect for close).
+
+| Return property | Type | Description |
+|---|---|---|
+| `top` | number | Starting top position in pixels |
+| `left` | number | Starting left position in pixels |
+| `width` | number | Starting width in pixels |
+| `height` | number | Starting height in pixels |
+| `fade` | boolean | Fades opacity in/out alongside the geometry |
+| `crossfade` | boolean | Crossfades between the thumbnail and alternate source image as it opens |
+| `hideSource` | boolean | Hides the original element while the popup is open |
+
+```js
+window.popupableAnimTypes.myAnim = (original, rect) => ({
+  top: rect.top + rect.height / 2,
+  left: rect.left,
+  width: rect.width,
+  height: 0,
+  fade: true
+})
+```
+
 ## Customization
 
 Popups can be styled using CSS variables:
@@ -182,7 +225,9 @@ Popups can be styled using CSS variables:
 
   /* Animation */
   --popupable-open-duration: .25s;      /* Open/close transition duration */
+  --popupable-open-easing: ease;        /* Open/close transition easing */
   --popupable-switch-duration: .25s;    /* Gallery navigation transition duration */
+  --popupable-switch-easing: ease;      /* Gallery navigation transition easing */
 }
 ```
 
@@ -199,4 +244,4 @@ This gives a seamless visual transition with no layout shifts.
 
 ## License
 
-MIT © [Ewan Howell](https://github.com/ewanhowell5195)
+MIT © [Ewan Howell](https://ewanhowell.com/)
