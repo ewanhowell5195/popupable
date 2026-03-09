@@ -528,6 +528,12 @@
             cloneList.append(clone.cloneContainer)
           }
         }
+        for (const [i, clone] of group.entries()) {
+          if (!clone.content) continue
+          const index = i - group.currentIndex
+          if (index > 0) clone.content.classList.add("popupable-content-after")
+          else if (index < 0) clone.content.classList.add("popupable-content-before")
+        }
       }
     } else {
       cloneList.append(cloneContainer)
@@ -552,11 +558,8 @@
 
     if (group) {
       if (cloneObj.counter) {
-        header = document.createElement("div")
-        header.className = "popupable-header"
         counter = document.createElement("div")
         counter.className = "popupable-counter"
-        header.append(counter)
       }
       if (cloneObj.thumbnails) {
         thumbnailsContainer = document.createElement("div")
