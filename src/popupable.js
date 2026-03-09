@@ -389,7 +389,7 @@
       counter: original.hasAttribute("data-popupable-counter"),
       thumbnails: original.hasAttribute("data-popupable-thumbnails"),
       order: parsePopupableOrder(original.dataset.popupableOrder),
-      animation: original.dataset.popupableAnim ?? "expand",
+      animation: popupableAnimTypes[original.dataset.popupableAnim] ? original.dataset.popupableAnim : "expand",
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.decode().catch(() => {})
       )),
