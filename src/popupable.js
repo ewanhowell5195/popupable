@@ -358,7 +358,7 @@
     if (original.dataset.popupableSrc || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = original.dataset.popupableSrc ?? original.currentSrc ?? original.src
+      cloneLayer.src = original.dataset.popupableSrc || original.currentSrc || original.src
       cloneLayer.style.imageRendering = styles.imageRendering
       cloneContainer.append(cloneLayer)
 
