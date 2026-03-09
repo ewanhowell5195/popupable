@@ -193,7 +193,7 @@
     document.body.classList.add("popupable-block-touch")
     setTimeout(() => document.body.classList.remove("popupable-block-touch"), 300)
 
-    const { cloneContainer, clone, original, popup, transition, group, listeners } = activePopup
+    const { cloneContainer, original, popup, transition, group, listeners } = activePopup
 
     original.classList.remove("popupable-loading")
     popup.classList.remove("popupable-active")
