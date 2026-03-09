@@ -343,7 +343,7 @@
 
     const clone = new Image()
     clone.className = "popupable-clone"
-    clone.src = baseSrc || original.currentSrc || original.src
+    clone.src = baseSrc || original.getAttribute("currentSrc") || original.getAttribute("src") || original.dataset.popupableSrc
 
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
@@ -355,10 +355,10 @@
     cloneContainer.append(clone)
 
     let cloneLayer
-    if (original.dataset.popupableSrc || baseSrc) {
+    if ((original.dataset.popupableSrc && (original.getAttribute("currentSrc") || original.getAttribute("src"))) || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = original.dataset.popupableSrc || original.currentSrc || original.src
+      cloneLayer.src = original.dataset.popupableSrc || original.getAttribute("currentSrc") || original.getAttribute("src")
       cloneLayer.style.imageRendering = styles.imageRendering
       cloneContainer.append(cloneLayer)
 
@@ -541,7 +541,7 @@
             group.currentIndex = i
             cloneList.append(cloneContainer)
           } else {
-            const clone = cloneElement(orig, original.currentSrc || original.src)
+            const clone = cloneElement(orig, original.getAttribute("currentSrc") || original.getAttribute("src"))
             clone.cloneContainer.style.display = "none"
             group.push(clone)
             cloneList.append(clone.cloneContainer)
@@ -586,7 +586,7 @@
         thumbnailItems = group.map((entry, i) => {
           const thumbnail = new Image()
           thumbnail.className = "popupable-thumbnail"
-          thumbnail.src = entry.original.currentSrc || entry.original.src
+          thumbnail.src = entry.original.dataset.popupableSrc || entry.original.getAttribute("currentSrc") || entry.original.getAttribute("src")
           thumbnail.dataset.thumbnailIndex = i
           thumbnailsContainer.append(thumbnail)
           return thumbnail
@@ -1107,7 +1107,7 @@
       return
     }
 
-    cloneContainer.style.transition = "initial"
+    cloneContainer.classList.add("popupable-block-transitions")
     document.body.append(popup)
     const { hideSource, crossfade, fade } = setCloneToOriginalRect(cloneContainer, original)
     if (hideSource) original.classList.add("popupable-hide")
@@ -1120,7 +1120,7 @@
 
     popup._state = popupState
 
-    cloneContainer.style.transition = null
+    cloneContainer.classList.remove("popupable-block-transitions")
     openPopupable(popup._state)
     if (group) recalculateVisible()
 
