@@ -341,9 +341,11 @@
       cloneContainer.classList.add("popupable-transparent")
     }
 
+    const elementSrc = original.getAttribute("currentSrc") || original.getAttribute("src")
+
     const clone = new Image()
     clone.className = "popupable-clone"
-    clone.src = baseSrc || original.getAttribute("currentSrc") || original.getAttribute("src") || original.dataset.popupableSrc
+    clone.src = baseSrc || elementSrc || original.dataset.popupableSrc
 
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
@@ -355,10 +357,10 @@
     cloneContainer.append(clone)
 
     let cloneLayer
-    if ((original.dataset.popupableSrc && (original.getAttribute("currentSrc") || original.getAttribute("src"))) || baseSrc) {
+    if ((original.dataset.popupableSrc && elementSrc) || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = original.dataset.popupableSrc || original.getAttribute("currentSrc") || original.getAttribute("src")
+      cloneLayer.src = original.dataset.popupableSrc || elementSrc
       cloneLayer.style.imageRendering = styles.imageRendering
       cloneContainer.append(cloneLayer)
 
