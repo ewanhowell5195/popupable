@@ -596,14 +596,14 @@
       viewportLayer.innerHTML = `
         <div class="popupable-button-container popupable-prev-container${!group.currentIndex ? " popupable-button-disabled" : ""}">
           <div class="popupable-button popupable-prev">
-            <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
+            <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor">
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/>
             </svg>
           </div>
         </div>
         <div class="popupable-button-container popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-button-disabled" : ""}">
           <div class="popupable-button popupable-next">
-            <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff">
+            <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor">
               <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/>
             </svg>
           </div>
@@ -1084,7 +1084,7 @@
 
     const closeContainer = document.createElement("div")
     closeContainer.className = "popupable-button-container popupable-close-container"
-    closeContainer.innerHTML = `<div class="popupable-button popupable-close"><svg width="24px" height="24px" viewBox="0 -960 960 960" fill="#fff"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></div>`
+    closeContainer.innerHTML = `<div class="popupable-button popupable-close"><svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></div>`
     closeContainer.addEventListener("click", closePopupable)
 
     if (!cloneObj.zoomable) {

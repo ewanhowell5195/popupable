@@ -219,6 +219,7 @@ Popups can be styled using CSS variables:
 
   /* UI elements (header, footer, buttons) */
   --popupable-ui-background: #0008;     /* Header/footer/button background */
+  --popupable-text-color: #fff;         /* Text and icon color */
 
   /* Spacing */
   --popupable-screen-padding: 40px;     /* Minimum gap between image and viewport edge */

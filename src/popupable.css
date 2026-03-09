@@ -46,6 +46,12 @@
   initial-value: ease;
 }
 
+@property --popupable-text-color {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fff;
+}
+
 [data-popupable],
 [data-popupable] * {
   cursor: pointer !important;
@@ -85,24 +91,10 @@
 }
 
 .popupable-container * {
+  box-sizing: border-box;
+  color: var(--popupable-text-color);
   -webkit-tap-highlight-color: transparent;
 }
-
-.popupable-viewport {
-  position: fixed;
-  left: var(--popupable-vv-left, 0);
-  top: var(--popupable-vv-top, 0);
-  width: calc(var(--popupable-vv-width, 100vw) * var(--popupable-vv-scale, 1));
-  height: calc(var(--popupable-vv-height, 100vh) * var(--popupable-vv-scale, 1));
-  transform-origin: top left;
-  transform: scale(var(--popupable-vv-ui-scale, 1));
-  pointer-events: none !important;
-}
-
-.popupable-container * {
-  box-sizing: border-box;
-}
-
 
 .popupable-container.popupable-open,
 .popupable-container.popupable-open > * {
@@ -173,6 +165,17 @@
 .popupable-crossfade.popupable-active .popupable-clone-layer,
 .popupable-container:not(.popupable-crossfade) .popupable-clone-layer {
   opacity: 1;
+}
+
+.popupable-viewport {
+  position: fixed;
+  left: var(--popupable-vv-left, 0);
+  top: var(--popupable-vv-top, 0);
+  width: calc(var(--popupable-vv-width, 100vw) * var(--popupable-vv-scale, 1));
+  height: calc(var(--popupable-vv-height, 100vh) * var(--popupable-vv-scale, 1));
+  transform-origin: top left;
+  transform: scale(var(--popupable-vv-ui-scale, 1));
+  pointer-events: none !important;
 }
 
 .popupable-button {
@@ -298,7 +301,6 @@
   opacity: 0;
   transition: opacity var(--popupable-open-duration) var(--popupable-open-easing), transform var(--popupable-open-duration) var(--popupable-open-easing);
   transform: translateY(-40px);
-  color: #fff;
   background: var(--popupable-ui-background);
   pointer-events: auto;
 }
@@ -338,7 +340,6 @@
   grid-row: 1;
   text-align: center;
   padding: 16px;
-  color: #fff;
   display: flex;
   flex-direction: column;
   gap: 8px;
