@@ -493,11 +493,11 @@
       return
     }
 
-    const loadToken = ++popupLoadToken
-
     if (activePopup) {
       closePopupable()
     }
+
+    const loadToken = ++popupLoadToken
 
     activePopup = {
       transition: {},
