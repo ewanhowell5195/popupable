@@ -125,10 +125,11 @@
         left: visualViewport.offsetLeft + rect.left,
         width: rect.width,
         height: rect.height,
-        hideSource: true
+        hideSource: true,
+        crossfade: true
       }
     },
-    pop(original, { top, left, width, height }) {
+    pop(original, { top, left, width, height } = {}) {
       return {
         top: top + height * 0.05,
         left: left + width * 0.05,
@@ -139,9 +140,8 @@
   }
 
   function setCloneToOriginalRect(cloneContainer, original) {
-    const animType = original.dataset.popupableAnim ?? "expand"
     const after = calcExpandedRect(activePopup)
-    let result = (animTypes[animType] ?? animTypes.expand)(original, after)
+    let result = (animTypes[activePopup.animation])(original, after)
     if (window.popupableStartLocation) {
       result = window.popupableStartLocation(original, result, after)
     }
@@ -149,7 +149,7 @@
     cloneContainer.style.left = result.left + "px"
     cloneContainer.style.width = result.width + "px"
     cloneContainer.style.height = result.height + "px"
-    return result.hideSource
+    return result
   }
 
   function openPopupable(toOpen) {
@@ -391,6 +391,7 @@
       counter: original.hasAttribute("data-popupable-counter"),
       thumbnails: original.hasAttribute("data-popupable-thumbnails"),
       order: parsePopupableOrder(original.dataset.popupableOrder),
+      animation: original.dataset.popupableAnim ?? "expand",
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.decode().catch(() => {})
       )),
@@ -537,7 +538,7 @@
     }
 
     const popup = document.createElement("div")
-    popup.className = `popupable-container popupable-anim-${original.dataset.popupableAnim ?? "expand"}`
+    popup.className = `popupable-container popupable-anim-${cloneObj.animation}`
     if (cloneObj.id) {
       popup.id = cloneObj.id
     }
@@ -1091,9 +1092,9 @@
     }
 
     document.body.append(popup)
-    if (setCloneToOriginalRect(cloneContainer, original)) {
-      original.classList.add("popupable-hide")
-    }
+    const { hideSource, crossfade } = setCloneToOriginalRect(cloneContainer, original)
+    if (hideSource) original.classList.add("popupable-hide")
+    if (crossfade) popup.classList.add("popupable-crossfade")
     disableScroll()
 
     const styles = getComputedStyle(popup)

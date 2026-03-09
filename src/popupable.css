@@ -166,11 +166,12 @@
   object-fit: cover;
 }
 
-.popupable-container.popupable-open .popupable-clone:not(:last-child) {
+.popupable-crossfade.popupable-open .popupable-clone:not(:last-child) {
   opacity: 0;
 }
 
-.popupable-container.popupable-active .popupable-clone-layer {
+.popupable-crossfade.popupable-active .popupable-clone-layer,
+.popupable-container:not(.popupable-crossfade) .popupable-clone-layer {
   opacity: 1;
 }
 
