@@ -572,7 +572,7 @@
       contentContainer.classList = "popupable-content-container"
     }
 
-    let header, footer, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt
+    let header, footer, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt, recalculateVisible
     const orderPlacement = {}
 
     if (group) {
@@ -636,7 +636,7 @@
         prev.classList.remove("popupable-button-inactive")
       }
 
-      async function recalculateVisible() {
+      recalculateVisible = async () => {
         const current = group[group.currentIndex]
         await current.ready
         if (group.currentIndex) {
@@ -722,8 +722,6 @@
         group.currentIndex--
         recalculateVisible()
       }
-
-      requestAnimationFrame(recalculateVisible)
 
       activePopup.listeners.push(
         {
@@ -1122,12 +1120,9 @@
 
     popup._state = popupState
 
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        cloneContainer.style.transition = null
-        openPopupable(popup._state)
-      })
-    })
+    cloneContainer.style.transition = null
+    openPopupable(popup._state)
+    if (group) recalculateVisible()
 
     let lastUpAt = 0
     let lastUpWasNav
