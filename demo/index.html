@@ -367,6 +367,7 @@
           <li>Pinch-to-zoom on touch, with optional click/tap-to-zoom support</li>
           <li>Load a hi-res image on open</li>
           <li>Checkerboard background for transparent images</li>
+          <li>Attribute inheritance - set options on a parent to apply to all children</li>
           <li>Customizable via CSS variables</li>
         </ul>
       </div>
@@ -410,7 +411,7 @@
         <p>Use <code>data-popupable-src</code> to specify a different image source for the popup. This can be used to display a completely different image, or to load a higher resolution version.</p>
         <div class="image-grid">
           <img src="https://picsum.photos/id/957/400/300.webp" data-popupable
-               data-popupable-src="https://picsum.photos/id/1039/1600/1200.webp">
+               data-popupable-src="https://picsum.photos/id/393/1600/1200.webp">
           <img src="https://picsum.photos/id/901/400/300.webp" data-popupable
                data-popupable-src="https://picsum.photos/id/229/1600/1200.webp">
           <img src="https://picsum.photos/id/908/50/38.webp" data-popupable="no-pixelation"
@@ -428,15 +429,15 @@
         <p>Use <code>data-popupable-anim</code> to control the open and close animation.</p>
         <div class="anim-examples">
           <figure>
-            <img src="https://picsum.photos/id/10/800/600.webp" data-popupable data-popupable-anim="expand" data-anim-fixed>
+            <img src="https://picsum.photos/id/1039/800/600.webp" data-popupable data-popupable-anim="expand" data-anim-fixed>
             <figcaption>expand</figcaption>
           </figure>
           <figure>
-            <img src="https://picsum.photos/id/65/800/600.webp" data-popupable data-popupable-anim="pop" data-anim-fixed>
+            <img src="https://picsum.photos/id/106/800/600.webp" data-popupable data-popupable-anim="pop" data-anim-fixed>
             <figcaption>pop</figcaption>
           </figure>
           <figure>
-            <img src="https://picsum.photos/id/106/800/600.webp" data-popupable data-popupable-anim="line" data-anim-fixed>
+            <img src="https://picsum.photos/id/443/800/600.webp" data-popupable data-popupable-anim="line" data-anim-fixed>
             <figcaption>line</figcaption>
           </figure>
           <figure>
@@ -534,7 +535,8 @@
           <img src="https://picsum.photos/id/522/1600/1200.webp" data-popupable data-popupable-group="gallery2" data-popupable-counter>
           <img src="https://picsum.photos/id/525/1600/1200.webp" data-popupable data-popupable-group="gallery2" data-popupable-counter>
         </div>
-        <pre>&lt;img src="image.webp" data-popupable data-popupable-group="gallery" data-popupable-counter&gt;</pre>
+        <pre>&lt;img src="photo1.webp" data-popupable data-popupable-group="gallery" data-popupable-counter&gt;
+&lt;img src="photo2.webp" data-popupable data-popupable-group="gallery" data-popupable-counter&gt;</pre>
       </div>
 
       <div class="section">
@@ -546,81 +548,84 @@
           <img src="https://picsum.photos/id/327/1600/1200.webp" data-popupable data-popupable-group="gallery3" data-popupable-thumbnails>
           <img src="https://picsum.photos/id/335/1600/1200.webp" data-popupable data-popupable-group="gallery3" data-popupable-thumbnails>
         </div>
-        <pre>&lt;img src="image.webp" data-popupable data-popupable-group="gallery" data-popupable-thumbnails&gt;</pre>
+        <pre>&lt;img src="photo1.webp" data-popupable data-popupable-group="gallery" data-popupable-thumbnails&gt;
+&lt;img src="photo2.webp" data-popupable data-popupable-group="gallery" data-popupable-thumbnails&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Inheritance</h2>
+        <p>All <code>data-popupable-*</code> attributes are inherited from parent elements. Set them once on a container instead of repeating on every image. Set an attribute to <code>"false"</code> to opt out on individual images. The last image below opens without thumbnails.</p>
+        <div class="image-grid" data-popupable-group="gallery-inherit" data-popupable-counter data-popupable-thumbnails>
+          <img src="https://picsum.photos/id/483/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/492/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/516/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/400/1600/1200.webp" data-popupable data-popupable-thumbnails="false">
+        </div>
+        <pre>&lt;div data-popupable-group="gallery" data-popupable-counter data-popupable-thumbnails&gt;
+  &lt;img src="image.webp" data-popupable&gt;
+  &lt;img src="image.webp" data-popupable&gt;
+  &lt;img src="image.webp" data-popupable&gt;
+  &lt;img src="image.webp" data-popupable data-popupable-thumbnails="false"&gt;
+&lt;/div&gt;</pre>
       </div>
 
       <div class="section">
         <h2>Combining Features</h2>
         <p>The counter, thumbnails, titles, and descriptions can all be combined together.</p>
-        <div class="image-grid">
-          <img src="https://picsum.photos/id/343/1600/1200.webp" data-popupable data-popupable-group="gallery4"
-               data-popupable-counter data-popupable-thumbnails
+        <div class="image-grid" data-popupable-group="gallery4" data-popupable-counter data-popupable-thumbnails>
+          <img src="https://picsum.photos/id/343/1600/1200.webp" data-popupable
                data-popupable-title="Natural Rock Arch" data-popupable-description="A rugged natural stone arch opening into a rocky forest path.">
-          <img src="https://picsum.photos/id/609/1600/1200.webp" data-popupable data-popupable-group="gallery4"
-              data-popupable-counter data-popupable-thumbnails
-              data-popupable-title="Pebble Shoreline" data-popupable-description="Smooth pebbles along a quiet shoreline with gentle waves in the background.">
-          <img src="https://picsum.photos/id/299/1600/1200.webp" data-popupable data-popupable-group="gallery4"
-               data-popupable-counter data-popupable-thumbnails
+          <img src="https://picsum.photos/id/609/1600/1200.webp" data-popupable
+               data-popupable-title="Pebble Shoreline" data-popupable-description="Smooth pebbles along a quiet shoreline with gentle waves in the background.">
+          <img src="https://picsum.photos/id/299/1600/1200.webp" data-popupable
                data-popupable-title="City Street Skyline" data-popupable-description="A downtown street leading toward a towering glass skyscraper.">
-          <img src="https://picsum.photos/id/46/1600/1200.webp" data-popupable data-popupable-group="gallery4"
-               data-popupable-counter data-popupable-thumbnails
+          <img src="https://picsum.photos/id/46/1600/1200.webp" data-popupable
                data-popupable-title="Rolling Hills Landscape" data-popupable-description="Wide view of sunlit rolling hills stretching across the horizon.">
         </div>
-        <pre>&lt;img src="image.webp" data-popupable data-popupable-group="gallery"
-     data-popupable-counter data-popupable-thumbnails
-     data-popupable-title="Title" data-popupable-description="Description"&gt;</pre>
+        <pre>&lt;div data-popupable-group="gallery" data-popupable-counter data-popupable-thumbnails&gt;
+  &lt;img src="photo1.webp" data-popupable data-popupable-title="..." data-popupable-description="..."&gt;
+  &lt;img src="photo2.webp" data-popupable data-popupable-title="..." data-popupable-description="..."&gt;
+&lt;/div&gt;</pre>
       </div>
 
       <div class="section">
         <h2>Reordering UI Components</h2>
         <p>Use <code>data-popupable-order</code> to reorder the UI elements. The available tokens are <code>counter</code>, <code>image</code>, <code>content</code>, and <code>thumbnails</code>. Elements placed before <code>image</code> appear above it, and those after appear below.</p>
-        <div class="image-grid">
-          <img src="https://picsum.photos/id/640/1600/1200.webp" data-popupable data-popupable-group="gallery5"
-               data-popupable-counter data-popupable-thumbnails
-               data-popupable-title="Beach Waves" data-popupable-description="Waves rolling onto a sandy shoreline."
-               data-popupable-order="content, image, counter, thumbnails">
-          <img src="https://picsum.photos/id/704/1600/1200.webp" data-popupable data-popupable-group="gallery5"
-               data-popupable-counter data-popupable-thumbnails
-               data-popupable-title="Bamboo Forest" data-popupable-description="Tall bamboo trees rising toward the sky."
-               data-popupable-order="content, image, counter, thumbnails">
-          <img src="https://picsum.photos/id/716/1600/1200.webp" data-popupable data-popupable-group="gallery5"
-               data-popupable-counter data-popupable-thumbnails
-               data-popupable-title="Ocean Surface" data-popupable-description="Close-up view of rippling blue water."
-               data-popupable-order="content, image, counter, thumbnails">
-          <img src="https://picsum.photos/id/724/1600/1200.webp" data-popupable data-popupable-group="gallery5"
-               data-popupable-counter data-popupable-thumbnails
-               data-popupable-title="Northern Lights Forest" data-popupable-description="Colorful aurora lights above a snowy forest."
-               data-popupable-order="content, image, counter, thumbnails">
+        <div class="image-grid" data-popupable-group="gallery5" data-popupable-counter data-popupable-thumbnails
+             data-popupable-order="content, image, counter, thumbnails">
+          <img src="https://picsum.photos/id/640/1600/1200.webp" data-popupable
+               data-popupable-title="Beach Waves" data-popupable-description="Waves rolling onto a sandy shoreline.">
+          <img src="https://picsum.photos/id/704/1600/1200.webp" data-popupable
+               data-popupable-title="Bamboo Forest" data-popupable-description="Tall bamboo trees rising toward the sky.">
+          <img src="https://picsum.photos/id/716/1600/1200.webp" data-popupable
+               data-popupable-title="Ocean Surface" data-popupable-description="Close-up view of rippling blue water.">
+          <img src="https://picsum.photos/id/724/1600/1200.webp" data-popupable
+               data-popupable-title="Northern Lights Forest" data-popupable-description="Colorful aurora lights above a snowy forest.">
         </div>
-        <pre>&lt;img src="image.webp" data-popupable data-popupable-group="gallery"
-     data-popupable-counter data-popupable-thumbnails
-     data-popupable-title="Title" data-popupable-description="Description"
-     data-popupable-order="content, image, counter, thumbnails"&gt;</pre>
+        <pre>&lt;div data-popupable-group="gallery" data-popupable-counter data-popupable-thumbnails
+     data-popupable-order="content, image, counter, thumbnails"&gt;
+  &lt;img src="photo1.webp" data-popupable data-popupable-title="..." data-popupable-description="..."&gt;
+  &lt;img src="photo2.webp" data-popupable data-popupable-title="..." data-popupable-description="..."&gt;
+&lt;/div&gt;</pre>
       </div>
 
       <div class="section">
         <h2>Unique IDs</h2>
         <p>Set a value on <code>data-popupable</code> to give the popup a CSS <code>id</code>. In a gallery, the <code>id</code> updates as you navigate, so each image can have its own backdrop colour.</p>
-        <div class="image-grid">
-          <img src="https://picsum.photos/id/867/1600/1200.webp" data-popupable="unique-ids-1" data-popupable-group="unique-ids"
-               data-popupable-counter>
-          <img src="https://picsum.photos/id/553/1600/1200.webp" data-popupable="unique-ids-2" data-popupable-group="unique-ids"
-              data-popupable-counter>
-          <img src="https://picsum.photos/id/830/1600/1200.webp" data-popupable="unique-ids-3" data-popupable-group="unique-ids"
-               data-popupable-counter>
-          <img src="https://picsum.photos/id/1080/1600/1200.webp" data-popupable="unique-ids-4" data-popupable-group="unique-ids"
-               data-popupable-counter>
+        <div class="image-grid" data-popupable-group="unique-ids" data-popupable-counter>
+          <img src="https://picsum.photos/id/867/1600/1200.webp" data-popupable="unique-ids-1">
+          <img src="https://picsum.photos/id/553/1600/1200.webp" data-popupable="unique-ids-2">
+          <img src="https://picsum.photos/id/830/1600/1200.webp" data-popupable="unique-ids-3">
+          <img src="https://picsum.photos/id/1080/1600/1200.webp" data-popupable="unique-ids-4">
         </div>
-        <pre>&lt;img src="image.webp" data-popupable="unique-ids-1" data-popupable-group="unique-ids"&gt;
-&lt;img src="image.webp" data-popupable="unique-ids-2" data-popupable-group="unique-ids"&gt;
-&lt;img src="image.webp" data-popupable="unique-ids-3" data-popupable-group="unique-ids"&gt;
-&lt;img src="image.webp" data-popupable="unique-ids-4" data-popupable-group="unique-ids"&gt;
+        <pre>&lt;div data-popupable-group="unique-ids" data-popupable-counter&gt;
+  &lt;img src="image.webp" data-popupable="unique-ids-1"&gt;
+  &lt;img src="image.webp" data-popupable="unique-ids-2"&gt;
+&lt;/div&gt;
 
 &lt;style&gt;
   #unique-ids-1.popupable-active { background: #AE8FDBBB; }
   #unique-ids-2.popupable-active { background: #BE5203BB; }
-  #unique-ids-3.popupable-active { background: #5B85C5BB; }
-  #unique-ids-4.popupable-active { background: #A00D3CBB; }
 &lt;/style&gt;</pre>
       </div>
 

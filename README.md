@@ -19,6 +19,7 @@ Just add `data-popupable` to any image!
 * Thumbnail strip and image counter
 * Pinch-to-zoom on touch, with optional click/tap-to-zoom support
 * Checkerboard background for transparent images
+* Attribute inheritance - set options on a parent to apply to all children
 * Customizable via CSS variables
 * Works in Vue, React, Svelte, and more
 
@@ -60,12 +61,34 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-no-upscale` | Prevents the popup from scaling the image beyond its native resolution. |
 | `data-popupable-zoomable` | Enables click/tap-to-zoom and scroll wheel zoom. |
 | `data-popupable-anim="name"` | Sets the open/close animation style. |
-| `data-popupable-group="name"` | Groups images into a navigable gallery. |
-| `data-popupable-counter` | Shows a "1 / N" counter when in a group. Read from the clicked image. |
-| `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. Read from the clicked image. |
+| `data-popupable-group="name"` | Groups images into a navigable gallery. Can be placed on a container element to group all `data-popupable` children. |
+| `data-popupable-counter` | Shows a "1 / N" counter when in a group. |
+| `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. |
 | `data-popupable-order="..."` | Controls the order of UI elements. |
 
+### Inheritance
+
+All `data-popupable-*` attributes except `data-popupable` itself are **inherited**. If an attribute isn't on the element, popupable walks up the DOM tree to find it on a parent. This lets you set options once on a container instead of repeating them on every child.
+
+Set an attribute to `"false"` to explicitly unset an inherited value:
+
+```html
+<div data-popupable-anim="pop" data-popupable-counter data-popupable-thumbnails>
+  <img src="photo1.jpg" data-popupable>
+  <img src="photo2.jpg" data-popupable data-popupable-counter="false">
+</div>
+```
+
 ## Advanced Usage
+
+### Non-image elements
+
+Any element can be made popupable. Use `src` or `data-popupable-src` to specify the image to display:
+
+```html
+<div src="photo.jpg" style="background-image: url(photo.jpg)" data-popupable></div>
+<div style="background-image: url(photo.jpg)" data-popupable data-popupable-src="photo.jpg"></div>
+```
 
 ### Hi-res source
 
@@ -113,20 +136,32 @@ When zoomed in, pan by dragging and zoom in/out with the scroll wheel. Click the
 
 Group multiple images together with `data-popupable-group`. Users can navigate with arrow buttons, swipe gestures, scroll wheel, or keyboard shortcuts.
 
+Place `data-popupable-group` directly on elements or on a container to group all `data-popupable` children:
+
 ```html
+<!-- On each element -->
 <img src="photo1.jpg" data-popupable data-popupable-group="holiday">
 <img src="photo2.jpg" data-popupable data-popupable-group="holiday">
 <img src="photo3.jpg" data-popupable data-popupable-group="holiday">
+
+<!-- Or on a container (inherited) -->
+<div data-popupable-group="holiday">
+  <img src="photo1.jpg" data-popupable>
+  <img src="photo2.jpg" data-popupable>
+  <img src="photo3.jpg" data-popupable>
+</div>
 ```
 
 ### Counter and thumbnails
 
-Add `data-popupable-counter` and/or `data-popupable-thumbnails` to individual group members. The attributes are read from whichever image is clicked to open the gallery, so add them to every image that should show these elements:
+Add `data-popupable-counter` and/or `data-popupable-thumbnails` to show those UI elements in a gallery. These inherit, so placing them on the group container applies them to all members:
 
 ```html
-<img src="photo1.jpg" data-popupable data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
-<img src="photo2.jpg" data-popupable data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
-<img src="photo3.jpg" data-popupable data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
+<div data-popupable-group="holiday" data-popupable-counter data-popupable-thumbnails>
+  <img src="photo1.jpg" data-popupable>
+  <img src="photo2.jpg" data-popupable>
+  <img src="photo3.jpg" data-popupable>
+</div>
 ```
 
 ### Custom UI order
@@ -185,26 +220,28 @@ The popup container receives a `popupable-anim-{name}` class (e.g. `popupable-an
 
 #### Custom animation styles
 
-Register your own animation style by adding a function to `window.popupableAnimTypes`. The function receives the original element and the final expanded rect `{ top, left, width, height }`, and returns an object describing the starting rect for the open animation (which is also the ending rect for close).
+Register your own animation style by adding an object to `window.popupableAnimTypes`. The object must have a `position` method that receives the original element and the final expanded rect, and returns the starting rect for the open animation (which is also the ending rect for close). Additional static flags control the animation behaviour.
 
-| Return property | Type | Description |
+| Property | Type | Description |
 |---|---|---|
-| `top` | number | Starting top position in pixels |
-| `left` | number | Starting left position in pixels |
-| `width` | number | Starting width in pixels |
-| `height` | number | Starting height in pixels |
+| `position(el, rect)` | function | Returns `{ top, left, width, height }` for the start of the open animation |
+| `styles` | boolean | Copies border, outline, and box-shadow from the element to the popup clone, then transitions them out |
 | `fade` | boolean | Fades opacity in/out alongside the geometry |
 | `crossfade` | boolean | Crossfades between the thumbnail and alternate source image as it opens |
 | `hideSource` | boolean | Hides the original element while the popup is open |
 
 ```js
-window.popupableAnimTypes.myAnim = (original, rect) => ({
-  top: rect.top + rect.height / 2,
-  left: rect.left,
-  width: rect.width,
-  height: 0,
-  fade: true
-})
+window.popupableAnimTypes.myAnim = {
+  fade: true,
+  position(original, rect) {
+    return {
+      top: rect.top + rect.height / 2,
+      left: rect.left,
+      width: rect.width,
+      height: 0
+    }
+  }
+}
 ```
 
 ## Customization
