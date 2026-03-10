@@ -314,7 +314,7 @@
     }
   }
 
-  const getElementSrc = el => el.getAttribute("currentSrc") || el.getAttribute("src")
+  const getElementSrc = el => el.getAttribute("currentSrc") || el.getAttribute("src") || el.getAttribute("data-popupable-src")
 
   function inheritAttr(element, attr) {
     const el = element.closest(`[${attr}]`)
