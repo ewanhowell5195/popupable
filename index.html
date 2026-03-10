@@ -146,6 +146,7 @@
             src="https://picsum.photos/id/1015/1920/1080"
             class="frame cover"
             data-popupable
+            data-popupable-group="aspect"
           >
           <figcaption>Cover (cropped)</figcaption>
         </figure>
@@ -155,6 +156,7 @@
             src="https://picsum.photos/id/1043/1920/1080"
             class="frame contain"
             data-popupable
+            data-popupable-group="aspect"
           >
           <figcaption>Contain (bounds visible)</figcaption>
         </figure>
@@ -164,6 +166,7 @@
             src="https://picsum.photos/id/1044/1920/1080"
             class="frame stretch"
             data-popupable
+            data-popupable-group="aspect"
           >
           <figcaption>Stretch (distorted)</figcaption>
         </figure>
@@ -883,8 +886,16 @@
       <div
         src="https://picsum.photos/id/343/2560/1440"
         data-popupable
-        style="width: 512px; height: 512px; display: flex; align-items: center; justify-content: center; border: 1px solid red; object-fit: cover;"
+        data-popupable-group="div"
+        style="width: 256px; height: 256px; display: flex; align-items: center; justify-content: center; border: 1px solid red; object-fit: cover;"
       >Hello there</div>
+
+      <div
+        src="https://picsum.photos/id/344/2560/1440"
+        data-popupable
+        data-popupable-group="div"
+        style="width: 256px; height: 256px; display: flex; align-items: center; justify-content: center; border: 1px solid red; object-fit: cover;"
+      >Another one</div>
     </section>
 
     <section>

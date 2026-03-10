@@ -350,7 +350,7 @@
     }
   }
 
-  function cloneElement(original, baseSrc) {
+  function cloneElement(original, base = original) {
     const animation = popupableAnimTypes[inheritAttr(original, "data-popupable-anim")] ?? popupableAnimTypes["expand"]
     const popupableSrc = inheritAttr(original, "data-popupable-src")
     const elementSrc = getElementSrc(original)
@@ -358,6 +358,8 @@
     const popupableDescription = inheritAttr(original, "data-popupable-description")
     const zoomable = inheritAttr(original, "data-popupable-zoomable")
     const styles = getComputedStyle(original)
+    const baseStyles = base === original ? styles : getComputedStyle(base)
+    const baseSrc = base !== original ? getElementSrc(base) : null
 
     const cloneContainer = document.createElement("div")
     cloneContainer.className = "popupable-clone-container"
@@ -373,10 +375,10 @@
     const clone = new Image()
     clone.className = "popupable-clone"
     clone.src = baseSrc || elementSrc || popupableSrc
-    clone.style.objectFit = styles.objectFit
-    clone.style.objectPosition = styles.objectPosition
-    clone.style.imageRendering = styles.imageRendering
-    clone.style.background = styles.background
+    clone.style.objectFit = baseStyles.objectFit
+    clone.style.objectPosition = baseStyles.objectPosition
+    clone.style.imageRendering = baseStyles.imageRendering
+    clone.style.background = baseStyles.background
 
     cloneContainer.append(clone)
 
@@ -584,7 +586,7 @@
             group.currentIndex = i
             cloneList.append(cloneContainer)
           } else {
-            const clone = cloneElement(orig, getElementSrc(original))
+            const clone = cloneElement(orig, original)
             clone.cloneContainer.style.display = "none"
             group.push(clone)
             cloneList.append(clone.cloneContainer)
