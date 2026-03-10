@@ -351,30 +351,28 @@
   }
 
   function cloneElement(original, baseSrc) {
-    const cloneContainer = document.createElement("div")
-    cloneContainer.className = "popupable-clone-container"
-    
-    if (inheritAttr(original, "data-popupable-transparent")) {
-      cloneContainer.classList.add("popupable-transparent")
-    }
-
+    const animation = popupableAnimTypes[inheritAttr(original, "data-popupable-anim")] ?? popupableAnimTypes["expand"]
     const popupableSrc = inheritAttr(original, "data-popupable-src")
     const elementSrc = getElementSrc(original)
-
-    const clone = new Image()
-    clone.className = "popupable-clone"
-    clone.src = baseSrc || elementSrc || popupableSrc
-
-    const anim = inheritAttr(original, "data-popupable-anim")
-    const animation = popupableAnimTypes[anim] ?? popupableAnimTypes["expand"]
-
+    const popupableTitle = inheritAttr(original, "data-popupable-title")
+    const popupableDescription = inheritAttr(original, "data-popupable-description")
+    const zoomable = inheritAttr(original, "data-popupable-zoomable")
     const styles = getComputedStyle(original)
+
+    const cloneContainer = document.createElement("div")
+    cloneContainer.className = "popupable-clone-container"
+    if (inheritAttr(original, "data-popupable-transparent")) cloneContainer.classList.add("popupable-transparent")
+    if (zoomable) cloneContainer.classList.add("popupable-zoomable")
     cloneContainer.style.borderRadius = styles.borderRadius
     if (animation.styles) {
       cloneContainer.style.border = styles.border
       cloneContainer.style.outline = styles.outline
       cloneContainer.style.boxShadow = styles.boxShadow
     }
+
+    const clone = new Image()
+    clone.className = "popupable-clone"
+    clone.src = baseSrc || elementSrc || popupableSrc
     clone.style.objectFit = styles.objectFit
     clone.style.objectPosition = styles.objectPosition
     clone.style.imageRendering = styles.imageRendering
@@ -402,9 +400,6 @@
       source = clone
     }
 
-    const popupableTitle = inheritAttr(original, "data-popupable-title")
-    const popupableDescription = inheritAttr(original, "data-popupable-description")
-
     let content
     if (popupableTitle || popupableDescription) {
       content = document.createElement("div")
@@ -425,19 +420,16 @@
       }
     }
 
-    const zoomable = inheritAttr(original, "data-popupable-zoomable")
-    if (zoomable) cloneContainer.classList.add("popupable-zoomable")
-
     return {
       id: original.dataset.popupable,
       original,
       cloneContainer,
       clone,
       cloneLayer,
-      maintainAspect: !!inheritAttr(original, "data-popupable-maintain-aspect"),
-      noUpscale: !!inheritAttr(original, "data-popupable-no-upscale"),
-      counter: !!inheritAttr(original, "data-popupable-counter"),
-      thumbnails: !!inheritAttr(original, "data-popupable-thumbnails"),
+      maintainAspect: inheritAttr(original, "data-popupable-maintain-aspect"),
+      noUpscale: inheritAttr(original, "data-popupable-no-upscale"),
+      counter: inheritAttr(original, "data-popupable-counter"),
+      thumbnails: inheritAttr(original, "data-popupable-thumbnails"),
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
       animation,
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
@@ -1158,12 +1150,11 @@
       return
     }
 
-    cloneContainer.classList.add("popupable-block-transitions")
-    document.body.append(popup)
-    setCloneToOriginalRect(cloneContainer, original)
     if (cloneObj.animation.hideSource) original.classList.add("popupable-hide")
     if (cloneObj.animation.crossfade) popup.classList.add("popupable-crossfade")
     if (cloneObj.animation.fade) popup.classList.add("popupable-fade")
+    document.body.append(popup)
+    setCloneToOriginalRect(cloneContainer, original)
     disableScroll()
 
     const styles = getComputedStyle(popup)
@@ -1171,7 +1162,6 @@
 
     popup._state = popupState
 
-    cloneContainer.classList.remove("popupable-block-transitions")
     openPopupable(popup._state)
     if (group) recalculateVisible()
 
