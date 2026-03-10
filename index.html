@@ -887,6 +887,23 @@
       >Hello there</div>
     </section>
 
+    <section>
+      <h2>Popupable inside a popupable</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Outer is a div with a background image. Inner is an img. Clicking the inner image should open the inner popup; clicking the outer div (not the inner image) should open the outer popup.</p>
+
+      <div
+        src="https://picsum.photos/id/600/1920/1080"
+        data-popupable
+        style="background-image: url('https://picsum.photos/id/600/640/360'); background-size: cover; background-position: center; width: 400px; height: 250px; position: relative; display: flex; align-items: flex-end; padding: 12px; object-fit: cover;"
+      >
+        <img
+          src="https://picsum.photos/id/602/1024/1024"
+          data-popupable
+          style="width: 80px; height: 80px; object-fit: cover; border: 2px solid white;"
+        >
+      </div>
+    </section>
+
     <script type="module">
       const toggle = document.getElementById("maintain-aspect-toggle")
       const images = document.querySelectorAll("label + .row img[data-popupable]")
