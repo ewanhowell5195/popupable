@@ -133,6 +133,9 @@
 
 .popupable-container.popupable-active .popupable-clone-container {
   border-radius: 0 !important;
+  border-width: 0 !important;
+  outline-width: 0 !important;
+  box-shadow: none !important;
   opacity: 1;
 }
 

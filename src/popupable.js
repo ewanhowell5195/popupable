@@ -117,54 +117,62 @@
   }
 
   window.popupableAnimTypes = {
-    expand(el) {
-      const rect = el.getBoundingClientRect()
-      return {
-        top: visualViewport.offsetTop + rect.top,
-        left: visualViewport.offsetLeft + rect.left,
-        width: rect.width,
-        height: rect.height,
-        hideSource: true,
-        crossfade: true
+    expand: {
+      styles: true,
+      hideSource: true,
+      crossfade: true,
+      position(el) {
+        const rect = el.getBoundingClientRect()
+        return {
+          top: visualViewport.offsetTop + rect.top,
+          left: visualViewport.offsetLeft + rect.left,
+          width: rect.width,
+          height: rect.height
+        }
       }
     },
-    pop(original, { top, left, width, height }) {
-      return {
-        top: top + height * 0.05,
-        left: left + width * 0.05,
-        width: width * 0.9,
-        height: height * 0.9,
-        fade: true
+    pop: {
+      fade: true,
+      position(original, { top, left, width, height }) {
+        return {
+          top: top + height * 0.05,
+          left: left + width * 0.05,
+          width: width * 0.9,
+          height: height * 0.9
+        }
       }
     },
-    line(original, { top, left, width, height }) {
-      return {
-        top: top + height / 2,
-        left: left + width * 0.05,
-        width: width * 0.9,
-        height: 0,
-        fade: true
+    line: {
+      fade: true,
+      position(original, { top, left, width, height }) {
+        return {
+          top: top + height / 2,
+          left: left + width * 0.05,
+          width: width * 0.9,
+          height: 0
+        }
       }
     },
-    float(original, { top, left, width, height }) {
-      return {
-        top: top + 40,
-        left,
-        width,
-        height,
-        fade: true
+    float: {
+      fade: true,
+      position(original, { top, left, width, height }) {
+        return {
+          top: top + 40,
+          left,
+          width,
+          height
+        }
       }
     }
   }
 
   function setCloneToOriginalRect(cloneContainer, original) {
     const after = calcExpandedRect(activePopup)
-    const result = (popupableAnimTypes[activePopup.animation])(original, after)
-    cloneContainer.style.top = result.top + "px"
-    cloneContainer.style.left = result.left + "px"
-    cloneContainer.style.width = result.width + "px"
-    cloneContainer.style.height = result.height + "px"
-    return result
+    const { top, left, width, height } = activePopup.animation.position(original, after)
+    cloneContainer.style.top = top + "px"
+    cloneContainer.style.left = left + "px"
+    cloneContainer.style.width = width + "px"
+    cloneContainer.style.height = height + "px"
   }
 
   function openPopupable(toOpen) {
@@ -357,8 +365,16 @@
     clone.className = "popupable-clone"
     clone.src = baseSrc || elementSrc || popupableSrc
 
+    const anim = inheritAttr(original, "data-popupable-anim")
+    const animation = popupableAnimTypes[anim] ?? popupableAnimTypes["expand"]
+
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
+    if (animation.styles) {
+      cloneContainer.style.border = styles.border
+      cloneContainer.style.outline = styles.outline
+      cloneContainer.style.boxShadow = styles.boxShadow
+    }
     clone.style.objectFit = styles.objectFit
     clone.style.objectPosition = styles.objectPosition
     clone.style.imageRendering = styles.imageRendering
@@ -412,8 +428,6 @@
     const zoomable = inheritAttr(original, "data-popupable-zoomable")
     if (zoomable) cloneContainer.classList.add("popupable-zoomable")
 
-    const anim = inheritAttr(original, "data-popupable-anim")
-
     return {
       id: original.dataset.popupable,
       original,
@@ -425,7 +439,7 @@
       counter: !!inheritAttr(original, "data-popupable-counter"),
       thumbnails: !!inheritAttr(original, "data-popupable-thumbnails"),
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
-      animation: popupableAnimTypes[anim] ? anim : "expand",
+      animation,
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.decode().catch(() => {})
       )),
@@ -1146,10 +1160,10 @@
 
     cloneContainer.classList.add("popupable-block-transitions")
     document.body.append(popup)
-    const { hideSource, crossfade, fade } = setCloneToOriginalRect(cloneContainer, original)
-    if (hideSource) original.classList.add("popupable-hide")
-    if (crossfade) popup.classList.add("popupable-crossfade")
-    if (fade) popup.classList.add("popupable-fade")
+    setCloneToOriginalRect(cloneContainer, original)
+    if (cloneObj.animation.hideSource) original.classList.add("popupable-hide")
+    if (cloneObj.animation.crossfade) popup.classList.add("popupable-crossfade")
+    if (cloneObj.animation.fade) popup.classList.add("popupable-fade")
     disableScroll()
 
     const styles = getComputedStyle(popup)
