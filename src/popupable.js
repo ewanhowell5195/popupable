@@ -61,8 +61,7 @@
       const rect = original.getBoundingClientRect()
       aspect = rect.width / rect.height
     } else {
-      const source = clone.cloneLayer || original
-      aspect = (source.naturalWidth / source.naturalHeight) || 1
+      aspect = (clone.source.naturalWidth / clone.source.naturalHeight) || 1
     }
 
     let topReserved = 0
@@ -356,7 +355,7 @@
 
     cloneContainer.append(clone)
 
-    let cloneLayer
+    let cloneLayer, source
     if ((original.dataset.popupableSrc && elementSrc) || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
@@ -370,6 +369,10 @@
           clone.style.objectFit = "cover"
         }
       }
+
+      source = cloneLayer
+    } else {
+      source = clone
     }
 
     let content
@@ -414,7 +417,8 @@
         img.decode().catch(() => {})
       )),
       content,
-      zoomable
+      zoomable,
+      source
     }
   }
 
