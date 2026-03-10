@@ -306,6 +306,16 @@
     }
   }
 
+  const getElementSrc = el => el.getAttribute("currentSrc") || el.getAttribute("src")
+
+  function inheritAttr(element, attr) {
+    const el = element.closest(`[${attr}]`)
+    if (!el) return
+    const value = el.getAttribute(attr)
+    if (value === "false") return
+    return value || true
+  }
+
   function parsePopupableOrder(value) {
     const defaultOrder = ["counter", "image", "content", "thumbnails"]
     const allowed = new Set(defaultOrder)
@@ -336,15 +346,16 @@
     const cloneContainer = document.createElement("div")
     cloneContainer.className = "popupable-clone-container"
     
-    if (original.hasAttribute("data-popupable-transparent")) {
+    if (inheritAttr(original, "data-popupable-transparent")) {
       cloneContainer.classList.add("popupable-transparent")
     }
 
-    const elementSrc = original.getAttribute("currentSrc") || original.getAttribute("src")
+    const popupableSrc = inheritAttr(original, "data-popupable-src")
+    const elementSrc = getElementSrc(original)
 
     const clone = new Image()
     clone.className = "popupable-clone"
-    clone.src = baseSrc || elementSrc || original.dataset.popupableSrc
+    clone.src = baseSrc || elementSrc || popupableSrc
 
     const styles = getComputedStyle(original)
     cloneContainer.style.borderRadius = styles.borderRadius
@@ -356,10 +367,10 @@
     cloneContainer.append(clone)
 
     let cloneLayer, source
-    if ((original.dataset.popupableSrc && elementSrc) || baseSrc) {
+    if ((popupableSrc && elementSrc) || baseSrc) {
       cloneLayer = new Image()
       cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = original.dataset.popupableSrc || elementSrc
+      cloneLayer.src = popupableSrc || elementSrc
       cloneLayer.style.imageRendering = styles.imageRendering
       cloneContainer.append(cloneLayer)
 
@@ -375,31 +386,33 @@
       source = clone
     }
 
+    const popupableTitle = inheritAttr(original, "data-popupable-title")
+    const popupableDescription = inheritAttr(original, "data-popupable-description")
+
     let content
-    if (original.dataset.popupableTitle || original.dataset.popupableDescription) {
+    if (popupableTitle || popupableDescription) {
       content = document.createElement("div")
       content.classList = "popupable-content"
 
-      if (original.dataset.popupableTitle) {
+      if (popupableTitle) {
         const title = document.createElement("div")
         title.className = "popupable-title"
-        title.textContent = original.dataset.popupableTitle
+        title.textContent = popupableTitle
         content.append(title)
       }
 
-      if (original.dataset.popupableDescription) {
+      if (popupableDescription) {
         const description = document.createElement("div")
         description.className = "popupable-description"
-        description.textContent = original.dataset.popupableDescription
+        description.textContent = popupableDescription
         content.append(description)
       }
     }
 
-    let zoomable
-    if (original.hasAttribute("data-popupable-zoomable")) {
-      zoomable = true
-      cloneContainer.classList.add("popupable-zoomable")
-    }
+    const zoomable = inheritAttr(original, "data-popupable-zoomable")
+    if (zoomable) cloneContainer.classList.add("popupable-zoomable")
+
+    const anim = inheritAttr(original, "data-popupable-anim")
 
     return {
       id: original.dataset.popupable,
@@ -407,12 +420,12 @@
       cloneContainer,
       clone,
       cloneLayer,
-      maintainAspect: original.hasAttribute("data-popupable-maintain-aspect"),
-      noUpscale: original.hasAttribute("data-popupable-no-upscale"),
-      counter: original.hasAttribute("data-popupable-counter"),
-      thumbnails: original.hasAttribute("data-popupable-thumbnails"),
-      order: parsePopupableOrder(original.dataset.popupableOrder),
-      animation: popupableAnimTypes[original.dataset.popupableAnim] ? original.dataset.popupableAnim : "expand",
+      maintainAspect: !!inheritAttr(original, "data-popupable-maintain-aspect"),
+      noUpscale: !!inheritAttr(original, "data-popupable-no-upscale"),
+      counter: !!inheritAttr(original, "data-popupable-counter"),
+      thumbnails: !!inheritAttr(original, "data-popupable-thumbnails"),
+      order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
+      animation: popupableAnimTypes[anim] ? anim : "expand",
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.decode().catch(() => {})
       )),
@@ -537,8 +550,26 @@
     const { cloneContainer, content } = cloneObj
 
     let group
-    if (original.dataset.popupableGroup) {
-      const grouped = document.querySelectorAll(`[data-popupable-group="${original.dataset.popupableGroup}"]`)
+    const groupEl = original.closest("[data-popupable-group]")
+    const groupRaw = groupEl?.getAttribute("data-popupable-group")
+    const groupValue = groupRaw && groupRaw !== "false" ? groupRaw : null
+    if (groupValue) {
+      const grouped = []
+      const seen = new Set()
+      for (const container of document.querySelectorAll(`[data-popupable-group="${groupValue}"]`)) {
+        if (container.hasAttribute("data-popupable") && !seen.has(container)) {
+          seen.add(container)
+          grouped.push(container)
+        }
+        for (const el of container.querySelectorAll("[data-popupable]")) {
+          if (seen.has(el)) continue
+          const ownGroup = el.getAttribute("data-popupable-group")
+          if ((ownGroup === null || ownGroup === groupValue) && el.closest("[data-popupable-group]") === container) {
+            seen.add(el)
+            grouped.push(el)
+          }
+        }
+      }
       if (grouped.length) {
         group = []
         for (const [i, orig] of grouped.entries()) {
@@ -547,7 +578,7 @@
             group.currentIndex = i
             cloneList.append(cloneContainer)
           } else {
-            const clone = cloneElement(orig, original.getAttribute("currentSrc") || original.getAttribute("src"))
+            const clone = cloneElement(orig, getElementSrc(original))
             clone.cloneContainer.style.display = "none"
             group.push(clone)
             cloneList.append(clone.cloneContainer)
@@ -592,7 +623,7 @@
         thumbnailItems = group.map((entry, i) => {
           const thumbnail = new Image()
           thumbnail.className = "popupable-thumbnail"
-          thumbnail.src = entry.original.dataset.popupableSrc || entry.original.getAttribute("currentSrc") || entry.original.getAttribute("src")
+          thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
           thumbnail.dataset.thumbnailIndex = i
           thumbnailsContainer.append(thumbnail)
           return thumbnail
