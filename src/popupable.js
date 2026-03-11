@@ -351,7 +351,9 @@
   }
 
   function cloneElement(original, base = original) {
-    const animation = popupableAnimTypes[inheritAttr(original, "data-popupable-anim")] ?? popupableAnimTypes["expand"]
+    const rawAnim = inheritAttr(original, "data-popupable-anim")
+    const animationName = popupableAnimTypes[rawAnim] ? rawAnim : "expand"
+    const animation = popupableAnimTypes[animationName]
     const popupableSrc = inheritAttr(original, "data-popupable-src")
     const elementSrc = getElementSrc(original)
     const popupableTitle = inheritAttr(original, "data-popupable-title")
@@ -433,6 +435,7 @@
       counter: inheritAttr(original, "data-popupable-counter"),
       thumbnails: inheritAttr(original, "data-popupable-thumbnails"),
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
+      animationName,
       animation,
       ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
         img.decode().catch(() => {})
@@ -604,7 +607,7 @@
     }
 
     const popup = document.createElement("div")
-    popup.className = `popupable-container popupable-anim-${cloneObj.animation}`
+    popup.className = `popupable-container popupable-anim-${cloneObj.animationName}`
     if (cloneObj.id) {
       popup.id = cloneObj.id
     }
@@ -1152,6 +1155,7 @@
       return
     }
 
+    cloneContainer.classList.add("popupable-block-transitions")
     if (cloneObj.animation.hideSource) original.classList.add("popupable-hide")
     if (cloneObj.animation.crossfade) popup.classList.add("popupable-crossfade")
     if (cloneObj.animation.fade) popup.classList.add("popupable-fade")
@@ -1164,8 +1168,11 @@
 
     popup._state = popupState
 
-    openPopupable(popup._state)
-    if (group) recalculateVisible()
+    requestAnimationFrame(() => {
+      cloneContainer.classList.remove("popupable-block-transitions")
+      openPopupable(popup._state)
+      if (group) recalculateVisible()
+    })
 
     let lastUpAt = 0
     let lastUpWasNav

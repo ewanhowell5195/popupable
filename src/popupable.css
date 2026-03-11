@@ -445,6 +445,11 @@
   cursor: zoom-out;
 }
 
+.popupable-block-transitions,
+.popupable-block-transitions * {
+  transition: initial !important;
+}
+
 @media (max-width: 768px) {
   :root {
     --popupable-screen-padding: 14px;
