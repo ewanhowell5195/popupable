@@ -21,12 +21,23 @@
   "bugs": {
     "url": "https://github.com/ewanhowell5195/popupable/issues"
   },
-  "homepage": "https://github.com/ewanhowell5195/popupable#readme",
+  "homepage": "https://popupable.ewanhowell.com/",
   "scripts": {
     "build": "node build.js"
   },
   "devDependencies": {
     "clean-css": "^5.3.3",
     "terser": "^5.43.1"
-  }
+  },
+  "keywords": [
+    "lightbox",
+    "popup",
+    "modal",
+    "image-viewer",
+    "gallery",
+    "zoom",
+    "pinch-zoom",
+    "javascript",
+    "zero-dependency"
+  ]
 }
