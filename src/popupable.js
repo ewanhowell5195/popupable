@@ -1169,9 +1169,11 @@
     popup._state = popupState
 
     requestAnimationFrame(() => {
-      cloneContainer.classList.remove("popupable-block-transitions")
-      openPopupable(popup._state)
-      if (group) recalculateVisible()
+      requestAnimationFrame(() => {
+        cloneContainer.classList.remove("popupable-block-transitions")
+        openPopupable(popup._state)
+        if (group) recalculateVisible()
+      })
     })
 
     let lastUpAt = 0
