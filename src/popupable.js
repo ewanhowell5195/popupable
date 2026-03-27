@@ -61,7 +61,9 @@
       const rect = original.getBoundingClientRect()
       aspect = rect.width / rect.height
     } else {
-      aspect = (clone.source.naturalWidth / clone.source.naturalHeight) || 1
+      const sw = clone.source.naturalWidth || clone.source.videoWidth
+      const sh = clone.source.naturalHeight || clone.source.videoHeight
+      aspect = (sw / sh) || 1
     }
 
     let topReserved = 0
@@ -92,8 +94,8 @@
     }
     if (clone.noUpscale) {
       const noUpscaleSource = clone.cloneLayer || original
-      const sourceW = noUpscaleSource.naturalWidth
-      const sourceH = noUpscaleSource.naturalHeight
+      const sourceW = noUpscaleSource.naturalWidth || noUpscaleSource.videoWidth
+      const sourceH = noUpscaleSource.naturalHeight || noUpscaleSource.videoHeight
       if (sourceW && sourceH) {
         const effectiveSourceW = sourceW / viewportScale
         const effectiveSourceH = sourceH / viewportScale
@@ -243,11 +245,23 @@
 
     cloneContainer.removeEventListener("transitionend", transition.listener)
 
+    const closingClone = group ? group[group.currentIndex] : activePopup
+    if (closingClone.video && closingClone.clone) {
+      closingClone.clone.pause()
+    }
+    const isOriginalClone = closingClone.original === original
+    if (isOriginalClone && closingClone.video && original.tagName === "VIDEO") {
+      original.currentTime = closingClone.clone.currentTime
+    }
+
     const check = activePopup
     transition.listener = e => {
       if (e && e.target !== e.currentTarget) return
       closingContainer.removeEventListener("transitionend", transition.listener)
       original.classList.remove("popupable-hide")
+      if (isOriginalClone && closingClone.wasPlaying && original.tagName === "VIDEO") {
+        original.play()
+      }
       popup.remove()
       if (check === activePopup) {
         enableScroll()
@@ -314,6 +328,17 @@
     }
   }
 
+  const VIDEO_EXTENSIONS = /\.(mp4|m4v|webm|ogv|mov|3gp|m3u8|flv)(\?|#|$)/i
+
+  function isVideo(el) {
+    const explicit = inheritAttr(el, "data-popupable-type")
+    if (explicit) return explicit === "video"
+    if (el.tagName === "VIDEO") return true
+    if (el.tagName === "IMG") return false
+    const src = el.getAttribute("data-popupable-src") || el.getAttribute("src") || ""
+    return VIDEO_EXTENSIONS.test(src)
+  }
+
   const getElementSrc = el => el.getAttribute("currentSrc") || el.getAttribute("src") || el.getAttribute("data-popupable-src")
 
   function inheritAttr(element, attr) {
@@ -374,34 +399,56 @@
       cloneContainer.style.boxShadow = styles.boxShadow
     }
 
-    const clone = new Image()
-    clone.className = "popupable-clone"
-    clone.src = baseSrc || elementSrc || popupableSrc
-    clone.style.objectFit = baseStyles.objectFit
-    clone.style.objectPosition = baseStyles.objectPosition
-    clone.style.imageRendering = baseStyles.imageRendering
-    clone.style.background = baseStyles.background
+    const video = isVideo(original)
+    let wasPlaying = false
 
-    cloneContainer.append(clone)
-
-    let cloneLayer, source
-    if ((popupableSrc && elementSrc) || baseSrc) {
-      cloneLayer = new Image()
-      cloneLayer.className = "popupable-clone-layer"
-      cloneLayer.src = popupableSrc || elementSrc
-      cloneLayer.style.imageRendering = styles.imageRendering
-      cloneContainer.append(cloneLayer)
-
-      if (clone.style.objectFit === "fill") {
-        const rect = original.getBoundingClientRect()
-        if (original.naturalWidth && original.naturalHeight && Math.abs(rect.width / rect.height - original.naturalWidth / original.naturalHeight) < 0.01) {
-          clone.style.objectFit = "cover"
-        }
+    let clone, cloneLayer, source
+    if (video) {
+      const videoSrc = popupableSrc || elementSrc
+      clone = document.createElement("video")
+      clone.className = "popupable-clone"
+      clone.src = videoSrc
+      clone.playsInline = true
+      clone.controls = true
+      clone.style.objectFit = baseStyles.objectFit
+      clone.style.objectPosition = baseStyles.objectPosition
+      clone.style.background = baseStyles.background
+      if (original.tagName === "VIDEO" && base === original) {
+        clone.currentTime = original.currentTime
+        wasPlaying = !original.paused
+        original.pause()
       }
-
-      source = cloneLayer
-    } else {
+      cloneContainer.append(clone)
       source = clone
+    } else {
+      clone = new Image()
+      clone.className = "popupable-clone"
+      clone.src = baseSrc || elementSrc || popupableSrc
+      clone.style.objectFit = baseStyles.objectFit
+      clone.style.objectPosition = baseStyles.objectPosition
+      clone.style.imageRendering = baseStyles.imageRendering
+      clone.style.background = baseStyles.background
+
+      cloneContainer.append(clone)
+
+      if ((popupableSrc && elementSrc) || baseSrc) {
+        cloneLayer = new Image()
+        cloneLayer.className = "popupable-clone-layer"
+        cloneLayer.src = popupableSrc || elementSrc
+        cloneLayer.style.imageRendering = styles.imageRendering
+        cloneContainer.append(cloneLayer)
+
+        if (clone.style.objectFit === "fill") {
+          const rect = original.getBoundingClientRect()
+          if (original.naturalWidth && original.naturalHeight && Math.abs(rect.width / rect.height - original.naturalWidth / original.naturalHeight) < 0.01) {
+            clone.style.objectFit = "cover"
+          }
+        }
+
+        source = cloneLayer
+      } else {
+        source = clone
+      }
     }
 
     let content
@@ -424,6 +471,16 @@
       }
     }
 
+    const ready = video
+      ? new Promise(resolve => {
+          if (clone.readyState >= 2) return resolve()
+          clone.addEventListener("loadeddata", resolve, { once: true })
+          clone.addEventListener("error", resolve, { once: true })
+        })
+      : Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
+          img.decode().catch(() => {})
+        ))
+
     return {
       id: original.dataset.popupable,
       original,
@@ -437,12 +494,12 @@
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
       animationName,
       animation,
-      ready: Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
-        img.decode().catch(() => {})
-      )),
+      ready,
       content,
       zoomable,
-      source
+      source,
+      video,
+      wasPlaying
     }
   }
 
@@ -632,9 +689,24 @@
         thumbnailsContainer = document.createElement("div")
         thumbnailsContainer.className = "popupable-thumbnails"
         thumbnailItems = group.map((entry, i) => {
-          const thumbnail = new Image()
+          let thumbnail
+          if (entry.video) {
+            const poster = entry.original.getAttribute("poster")
+            if (poster) {
+              thumbnail = new Image()
+              thumbnail.src = poster
+            } else {
+              thumbnail = document.createElement("video")
+              thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+              thumbnail.muted = true
+              thumbnail.playsInline = true
+              thumbnail.preload = "metadata"
+            }
+          } else {
+            thumbnail = new Image()
+            thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+          }
           thumbnail.className = "popupable-thumbnail"
-          thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
           thumbnail.dataset.thumbnailIndex = i
           thumbnailsContainer.append(thumbnail)
           return thumbnail
@@ -755,7 +827,7 @@
             hasPositionedThumbnails = true
           })
         }
-        activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable)
+        activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable && !current.video)
         updateExpandedSize()
       }
 
@@ -1135,7 +1207,7 @@
     closeContainer.innerHTML = `<div class="popupable-button popupable-close"><svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></div>`
     closeContainer.addEventListener("click", closePopupable)
 
-    if (!cloneObj.zoomable) {
+    if (!cloneObj.zoomable && !cloneObj.video) {
       closeContainer.classList.add("popupable-button-inactive")
     }
 
@@ -1161,6 +1233,9 @@
     if (cloneObj.animation.fade) popup.classList.add("popupable-fade")
     document.body.append(popup)
     setCloneToOriginalRect(cloneContainer, original)
+    if (cloneObj.video) {
+      cloneObj.clone.play().catch(() => {})
+    }
     disableScroll()
 
     const styles = getComputedStyle(popup)
@@ -1552,6 +1627,9 @@
             return
           }
 
+          if (current.video && (e.target.classList.contains("popupable-clone") || e.target.closest(".popupable-clone-container") === current.cloneContainer)) {
+            return
+          }
           if (current.zoomable && (e.target.classList.contains("popupable-clone") || e.target.classList.contains("popupable-clone-layer"))) {
             enterZoom(state, current, e, 2)
             return
