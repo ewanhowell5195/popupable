@@ -91,6 +91,11 @@
         object-fit: cover;
       }
 
+      section video {
+        max-width: max(100%, 640px);
+        max-height: 360px;
+      }
+
       #gallery2-1.popupable-active {
         background: #0A4446BB;
       }
@@ -913,6 +918,241 @@
           style="width: 80px; height: 80px; object-fit: cover; border: 2px solid white;"
         >
       </div>
+    </section>
+
+    <section>
+      <h2>Video (playing, muted)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Autoplaying muted video. Should continue playing in popup, resume on close.</p>
+
+      <video
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        muted
+        autoplay
+        loop
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video with audio</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Video with audio track. Should be able to hear audio when playing in popup.</p>
+
+      <video
+        src="https://www.tekeye.uk/html/images/Joren_Falls_Izu_Jap.mp4"
+        data-popupable
+        muted
+        autoplay
+        loop
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video (paused)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Not autoplaying. Should still auto-play in popup. On close, should stay paused since it wasn't playing before.</p>
+
+      <video
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        muted
+        loop
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video with title and description</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Video with <code>data-popupable-title</code> and <code>data-popupable-description</code>.</p>
+
+      <video
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        data-popupable-title="A video title"
+        data-popupable-description="Description text for the video"
+        muted
+        autoplay
+        loop
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video with border radius</h2>
+
+      <video
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        style="border-radius: 40px;"
+        data-popupable
+        muted
+        autoplay
+        loop
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video with alternate source</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Inline shows one video, popup should load the <code>data-popupable-src</code> video instead.</p>
+
+      <video
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        data-popupable-src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        muted
+        autoplay
+        loop
+        style="max-height: 200px;"
+      ></video>
+    </section>
+
+    <section>
+      <h2>Video animation types</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Same video with different <code>data-popupable-anim</code> values.</p>
+
+      <div class="row">
+        <figure>
+          <video
+            src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+            class="gallery-thumb"
+            data-popupable
+            data-popupable-anim="expand"
+            muted
+            autoplay
+            loop
+          ></video>
+          <figcaption><code>expand</code> (default)</figcaption>
+        </figure>
+
+        <figure>
+          <video
+            src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+            class="gallery-thumb"
+            data-popupable
+            data-popupable-anim="pop"
+            muted
+            autoplay
+            loop
+          ></video>
+          <figcaption><code>pop</code></figcaption>
+        </figure>
+
+        <figure>
+          <video
+            src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+            class="gallery-thumb"
+            data-popupable
+            data-popupable-anim="line"
+            muted
+            autoplay
+            loop
+          ></video>
+          <figcaption><code>line</code></figcaption>
+        </figure>
+
+        <figure>
+          <video
+            src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+            class="gallery-thumb"
+            data-popupable
+            data-popupable-anim="float"
+            muted
+            autoplay
+            loop
+          ></video>
+          <figcaption><code>float</code></figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Video gallery (grouped)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Multiple videos in a group. Navigate between them with arrows.</p>
+
+      <div class="row">
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="video-gallery"
+          data-popupable-counter
+          muted
+          autoplay
+          loop
+        ></video>
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="video-gallery"
+          data-popupable-counter
+          muted
+          autoplay
+          loop
+        ></video>
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-group="video-gallery"
+          data-popupable-counter
+          muted
+          autoplay
+          loop
+        ></video>
+      </div>
+    </section>
+
+    <section>
+      <h2>Mixed image + video gallery</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Images and videos in the same group with counter and thumbnails.</p>
+
+      <div class="row" data-popupable-group="mixed-gallery" data-popupable-counter data-popupable-thumbnails>
+        <img
+          src="https://picsum.photos/id/1015/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+        >
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          muted
+          autoplay
+          loop
+        ></video>
+        <img
+          src="https://picsum.photos/id/1025/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+        >
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          muted
+          autoplay
+          loop
+        ></video>
+      </div>
+    </section>
+
+    <section>
+      <h2>Div with video src (type inferred from extension)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">A <code>&lt;div&gt;</code> with a <code>.mp4</code> src. Type should be inferred as video from the file extension.</p>
+
+      <div
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        style="width: 256px; height: 144px; display: flex; align-items: center; justify-content: center; border: 1px solid red;"
+      >Click me (div with video src)</div>
+    </section>
+
+    <section>
+      <h2>Explicit type override</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">An <code>&lt;img&gt;</code> tag forced to behave as video via <code>data-popupable-type="video"</code>.</p>
+
+      <img
+        src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+        data-popupable
+        data-popupable-type="video"
+        style="width: 256px; height: 144px; object-fit: cover; background: #333;"
+      >
     </section>
 
     <script type="module">
