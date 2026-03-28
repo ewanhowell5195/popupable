@@ -196,6 +196,10 @@
       if (e && e.target !== e.currentTarget) return
       openTransitionContainer.removeEventListener("transitionend", transition.listener)
       popup.classList.add("popupable-open")
+      const openCurrent = group ? group[group.currentIndex] : toOpen
+      if (openCurrent.video && !openCurrent.zoomable) {
+        openCurrent.clone.controls = true
+      }
       if (group) {
         for (const entry of group) {
           entry.cloneContainer.style.display = null
@@ -247,6 +251,7 @@
 
     const closingClone = group ? group[group.currentIndex] : activePopup
     if (closingClone.video && closingClone.clone) {
+      closingClone.clone.controls = false
       closingClone.clone.pause()
     }
     const isOriginalClone = closingClone.original === original
@@ -409,7 +414,7 @@
       clone.className = "popupable-clone"
       clone.src = videoSrc
       clone.playsInline = true
-      clone.controls = !zoomable
+      clone.controls = false
       clone.style.objectFit = baseStyles.objectFit
       clone.style.objectPosition = baseStyles.objectPosition
       clone.style.background = baseStyles.background
@@ -870,13 +875,17 @@
 
       function pauseAndSwitch(newIndex) {
         const prev = group[group.currentIndex]
-        if (prev.video && prev.clone && !prev.clone.paused) {
-          prev.swipePaused = true
-          prev.clone.pause()
+        if (prev.video && prev.clone) {
+          if (!prev.clone.paused) {
+            prev.swipePaused = true
+            prev.clone.pause()
+          }
+          prev.clone.controls = false
         }
         group.currentIndex = newIndex
         const current = group[group.currentIndex]
         if (current.video && current.clone) {
+          if (!current.zoomable) current.clone.controls = true
           current.clone.play().catch(() => {})
           current.swipePaused = false
         }
