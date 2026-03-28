@@ -409,7 +409,7 @@
       clone.className = "popupable-clone"
       clone.src = videoSrc
       clone.playsInline = true
-      clone.controls = true
+      clone.controls = !zoomable
       clone.style.objectFit = baseStyles.objectFit
       clone.style.objectPosition = baseStyles.objectPosition
       clone.style.background = baseStyles.background
@@ -868,16 +868,29 @@
         updateExpandedSize()
       }
 
+      function pauseAndSwitch(newIndex) {
+        const prev = group[group.currentIndex]
+        if (prev.video && prev.clone && !prev.clone.paused) {
+          prev.swipePaused = true
+          prev.clone.pause()
+        }
+        group.currentIndex = newIndex
+        const current = group[group.currentIndex]
+        if (current.video && current.clone) {
+          current.clone.play().catch(() => {})
+          current.swipePaused = false
+        }
+        recalculateVisible()
+      }
+
       goNext = () => {
         if (group.currentIndex >= group.length - 1) return
-        group.currentIndex++
-        recalculateVisible()
+        pauseAndSwitch(group.currentIndex + 1)
       }
 
       goPrev = () => {
         if (group.currentIndex <= 0) return
-        group.currentIndex--
-        recalculateVisible()
+        pauseAndSwitch(group.currentIndex - 1)
       }
 
       activePopup.listeners.push(
@@ -1664,11 +1677,11 @@
             return
           }
 
-          if (current.video && (e.target.classList.contains("popupable-clone") || e.target.closest(".popupable-clone-container") === current.cloneContainer)) {
-            return
-          }
           if (current.zoomable && (e.target.classList.contains("popupable-clone") || e.target.classList.contains("popupable-clone-layer"))) {
             enterZoom(state, current, e, 2)
+            return
+          }
+          if (current.video && (e.target.classList.contains("popupable-clone") || e.target.closest(".popupable-clone-container") === current.cloneContainer)) {
             return
           }
           closePopupable()
