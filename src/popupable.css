@@ -161,6 +161,10 @@
   object-fit: cover;
 }
 
+video.popupable-clone:fullscreen {
+  object-fit: contain !important;
+}
+
 .popupable-crossfade.popupable-open .popupable-clone:not(:last-child) {
   opacity: 0;
 }
