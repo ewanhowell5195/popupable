@@ -421,24 +421,46 @@
       cloneContainer.append(clone)
       source = clone
     } else {
-      clone = new Image()
-      clone.className = "popupable-clone"
-      clone.src = baseSrc || elementSrc || popupableSrc
+      const cloneSrc = baseSrc || elementSrc || popupableSrc
+      if (VIDEO_EXTENSIONS.test(cloneSrc)) {
+        clone = document.createElement("video")
+        clone.className = "popupable-clone"
+        clone.src = cloneSrc
+        clone.playsInline = true
+        clone.muted = true
+        clone.loop = true
+        clone.autoplay = true
+      } else {
+        clone = new Image()
+        clone.className = "popupable-clone"
+        clone.src = cloneSrc
+        clone.style.imageRendering = baseStyles.imageRendering
+      }
       clone.style.objectFit = baseStyles.objectFit
       clone.style.objectPosition = baseStyles.objectPosition
-      clone.style.imageRendering = baseStyles.imageRendering
       clone.style.background = baseStyles.background
 
       cloneContainer.append(clone)
 
       if ((popupableSrc && elementSrc) || baseSrc) {
-        cloneLayer = new Image()
-        cloneLayer.className = "popupable-clone-layer"
-        cloneLayer.src = popupableSrc || elementSrc
-        cloneLayer.style.imageRendering = styles.imageRendering
+        const layerSrc = popupableSrc || elementSrc
+        if (VIDEO_EXTENSIONS.test(layerSrc)) {
+          cloneLayer = document.createElement("video")
+          cloneLayer.className = "popupable-clone-layer"
+          cloneLayer.src = layerSrc
+          cloneLayer.playsInline = true
+          cloneLayer.muted = true
+          cloneLayer.loop = true
+          cloneLayer.autoplay = true
+        } else {
+          cloneLayer = new Image()
+          cloneLayer.className = "popupable-clone-layer"
+          cloneLayer.src = layerSrc
+          cloneLayer.style.imageRendering = styles.imageRendering
+        }
         cloneContainer.append(cloneLayer)
 
-        if (clone.style.objectFit === "fill") {
+        if (clone.style.objectFit === "fill" && clone.tagName === "IMG") {
           const rect = original.getBoundingClientRect()
           if (original.naturalWidth && original.naturalHeight && Math.abs(rect.width / rect.height - original.naturalWidth / original.naturalHeight) < 0.01) {
             clone.style.objectFit = "cover"
@@ -477,8 +499,12 @@
           clone.addEventListener("loadeddata", resolve, { once: true })
           clone.addEventListener("error", resolve, { once: true })
         })
-      : Promise.all([clone, cloneLayer].filter(Boolean).map(img =>
-          img.decode().catch(() => {})
+      : Promise.all([clone, cloneLayer].filter(Boolean).map(el =>
+          el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
+            if (el.readyState >= 2) return resolve()
+            el.addEventListener("loadeddata", resolve, { once: true })
+            el.addEventListener("error", resolve, { once: true })
+          })
         ))
 
     return {
