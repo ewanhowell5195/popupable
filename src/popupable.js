@@ -544,6 +544,8 @@
     dragging = true
   })
 
+  let draggedPastThreshold = false
+
   function handleMove(e) {
     if (activePopup?.state !== "open" || !activePopup.group || !dragging) return
     if (!activePopup.popup?.classList.contains("popupable-open")) {
@@ -552,8 +554,10 @@
       return
     }
     const current = activePopup.group[activePopup.group.currentIndex]
+    const clientX = e.touches?.[0].clientX ?? e.clientX
+    if (!draggedPastThreshold && Math.abs(clientX - downX) > DRAG_THRESHOLD && current.video) {
     current.cloneContainer.parentElement.style.transition = "initial"
-    current.cloneContainer.parentElement.style.transform = `translateX(${(e.touches?.[0].clientX ?? e.clientX) - downX}px)`
+    current.cloneContainer.parentElement.style.transform = `translateX(${clientX - downX}px)`
   }
 
   document.addEventListener("mousemove", handleMove)
@@ -577,14 +581,18 @@
       }
       if (activePopup.group && dxa > DRAG_THRESHOLD) {
         const multiplier = Math.max(0, Math.floor((dxa - window.innerWidth / 2) / window.innerWidth))
-        if (dx > 32) {
+        if (dx > Math.max(window.innerWidth * 0.1, 64)) {
           for (let i = 0; i <= multiplier; i++) {
             activePopup.goPrev()
           }
-        } else if (dx < -32) {
+        } else if (dx < -Math.max(window.innerWidth * 0.1, 64)) {
           for (let i = 0; i <= multiplier; i++) {
             activePopup.goNext()
           }
+        }
+        if (current.video) {
+          current.clone.style.pointerEvents = "none"
+          requestAnimationFrame(() => current.clone.style.pointerEvents = null)
         }
         activePopup.blocked = true
         return
