@@ -556,6 +556,9 @@
     const current = activePopup.group[activePopup.group.currentIndex]
     const clientX = e.touches?.[0].clientX ?? e.clientX
     if (!draggedPastThreshold && Math.abs(clientX - downX) > DRAG_THRESHOLD && current.video) {
+      draggedPastThreshold = true
+      current.clone.style.pointerEvents = "none"
+    }
     current.cloneContainer.parentElement.style.transition = "initial"
     current.cloneContainer.parentElement.style.transform = `translateX(${clientX - downX}px)`
   }
@@ -569,6 +572,10 @@
     if (dragging) {
       dragging = false
       const current = activePopup.group ? activePopup.group[activePopup.group.currentIndex] : activePopup
+      if (draggedPastThreshold) {
+        draggedPastThreshold = false
+        current.clone.style.pointerEvents = null
+      }
       current.cloneContainer.parentElement.style.transition = null
       current.cloneContainer.parentElement.style.transform = null
       const dx = e.clientX - downX
@@ -589,10 +596,6 @@
           for (let i = 0; i <= multiplier; i++) {
             activePopup.goNext()
           }
-        }
-        if (current.video) {
-          current.clone.style.pointerEvents = "none"
-          requestAnimationFrame(() => current.clone.style.pointerEvents = null)
         }
         activePopup.blocked = true
         return
