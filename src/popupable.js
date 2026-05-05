@@ -252,18 +252,17 @@
     const closingClone = group ? group[group.currentIndex] : activePopup
     if (closingClone.video && closingClone.source) {
       closingClone.source.controls = false
-      closingClone.source.pause()
     }
     const isOriginalClone = closingClone.original === original
-    if (isOriginalClone && closingClone.video && original.tagName === "VIDEO" && !closingClone.cloneLayer) {
-      original.currentTime = closingClone.source.currentTime
-    }
 
     const check = activePopup
     transition.listener = e => {
       if (e && e.target !== e.currentTarget) return
       closingContainer.removeEventListener("transitionend", transition.listener)
       original.classList.remove("popupable-hide")
+      if (isOriginalClone && closingClone.video && original.tagName === "VIDEO" && !closingClone.cloneLayer) {
+        original.currentTime = closingClone.source.currentTime
+      }
       if (isOriginalClone && closingClone.wasPlaying && original.tagName === "VIDEO") {
         original.play()
       }
