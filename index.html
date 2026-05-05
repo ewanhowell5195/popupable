@@ -1196,6 +1196,24 @@
           }
         }
       })
+
+      const videoObserver = new IntersectionObserver(entries => {
+        for (const entry of entries) {
+          const video = entry.target
+          if (entry.isIntersecting) {
+            if (video.dataset.autoplayWhenVisible === "true") video.play().catch(() => {})
+          } else {
+            if (!video.paused) video.pause()
+          }
+        }
+      }, { rootMargin: "100px" })
+
+      for (const video of document.querySelectorAll("video[autoplay]")) {
+        video.dataset.autoplayWhenVisible = "true"
+        video.removeAttribute("autoplay")
+        video.pause()
+        videoObserver.observe(video)
+      }
     </script>
 
     <script>

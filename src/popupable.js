@@ -198,7 +198,7 @@
       popup.classList.add("popupable-open")
       const openCurrent = group ? group[group.currentIndex] : toOpen
       if (openCurrent.video && !openCurrent.zoomable) {
-        openCurrent.clone.controls = true
+        openCurrent.source.controls = true
       }
       if (group) {
         for (const entry of group) {
@@ -250,13 +250,13 @@
     cloneContainer.removeEventListener("transitionend", transition.listener)
 
     const closingClone = group ? group[group.currentIndex] : activePopup
-    if (closingClone.video && closingClone.clone) {
-      closingClone.clone.controls = false
-      closingClone.clone.pause()
+    if (closingClone.video && closingClone.source) {
+      closingClone.source.controls = false
+      closingClone.source.pause()
     }
     const isOriginalClone = closingClone.original === original
-    if (isOriginalClone && closingClone.video && original.tagName === "VIDEO") {
-      original.currentTime = closingClone.clone.currentTime
+    if (isOriginalClone && closingClone.video && original.tagName === "VIDEO" && !closingClone.cloneLayer) {
+      original.currentTime = closingClone.source.currentTime
     }
 
     const check = activePopup
@@ -407,78 +407,77 @@
     const video = isVideo(original)
     let wasPlaying = false
 
+    const posterAttr = inheritAttr(original, "data-popupable-poster")
+    const posterSrc = (typeof posterAttr === "string" ? posterAttr : null) || (original.tagName === "VIDEO" ? original.getAttribute("poster") : null)
+
+    const cloneSrc = baseSrc || elementSrc || popupableSrc
+    const cloneIsVideo = VIDEO_EXTENSIONS.test(cloneSrc) || (video && cloneSrc === elementSrc)
+    const hasLayer = (popupableSrc && elementSrc) || baseSrc
+
     let clone, cloneLayer, source
-    if (video) {
-      const videoSrc = popupableSrc || elementSrc
+
+    if (cloneIsVideo) {
       clone = document.createElement("video")
       clone.className = "popupable-clone"
-      clone.src = videoSrc
+      clone.src = cloneSrc
       clone.playsInline = true
       clone.controls = false
-      const posterAttr = inheritAttr(original, "data-popupable-poster")
-      const posterSrc = (typeof posterAttr === "string" ? posterAttr : null) || (original.tagName === "VIDEO" ? original.getAttribute("poster") : null)
-      if (posterSrc) clone.poster = posterSrc
-      clone.style.objectFit = baseStyles.objectFit
-      clone.style.objectPosition = baseStyles.objectPosition
-      clone.style.background = baseStyles.background
-      if (original.tagName === "VIDEO" && base === original) {
-        clone.currentTime = original.currentTime
-        wasPlaying = !original.paused
-        original.pause()
-      }
-      cloneContainer.append(clone)
-      source = clone
-    } else {
-      const cloneSrc = baseSrc || elementSrc || popupableSrc
-      if (VIDEO_EXTENSIONS.test(cloneSrc)) {
-        clone = document.createElement("video")
-        clone.className = "popupable-clone"
-        clone.src = cloneSrc
-        clone.playsInline = true
+      if (!video || hasLayer) {
         clone.muted = true
         clone.loop = true
         clone.autoplay = true
-      } else {
-        clone = new Image()
-        clone.className = "popupable-clone"
-        clone.src = cloneSrc
-        clone.style.imageRendering = baseStyles.imageRendering
       }
-      clone.style.objectFit = baseStyles.objectFit
-      clone.style.objectPosition = baseStyles.objectPosition
-      clone.style.background = baseStyles.background
+      if (posterSrc && cloneSrc === elementSrc) clone.poster = posterSrc
+    } else {
+      clone = new Image()
+      clone.className = "popupable-clone"
+      clone.src = cloneSrc
+      clone.style.imageRendering = baseStyles.imageRendering
+    }
+    clone.style.objectFit = baseStyles.objectFit
+    clone.style.objectPosition = baseStyles.objectPosition
+    clone.style.background = baseStyles.background
+    cloneContainer.append(clone)
 
-      cloneContainer.append(clone)
-
-      if ((popupableSrc && elementSrc) || baseSrc) {
-        const layerSrc = popupableSrc || elementSrc
-        if (VIDEO_EXTENSIONS.test(layerSrc)) {
-          cloneLayer = document.createElement("video")
-          cloneLayer.className = "popupable-clone-layer"
-          cloneLayer.src = layerSrc
-          cloneLayer.playsInline = true
+    if (hasLayer) {
+      const layerSrc = popupableSrc || elementSrc
+      const layerIsVideo = VIDEO_EXTENSIONS.test(layerSrc) || (video && layerSrc === elementSrc)
+      if (layerIsVideo) {
+        cloneLayer = document.createElement("video")
+        cloneLayer.className = "popupable-clone-layer"
+        cloneLayer.src = layerSrc
+        cloneLayer.playsInline = true
+        cloneLayer.controls = false
+        if (!video) {
           cloneLayer.muted = true
           cloneLayer.loop = true
           cloneLayer.autoplay = true
-        } else {
-          cloneLayer = new Image()
-          cloneLayer.className = "popupable-clone-layer"
-          cloneLayer.src = layerSrc
-          cloneLayer.style.imageRendering = styles.imageRendering
         }
-        cloneContainer.append(cloneLayer)
-
-        if (clone.style.objectFit === "fill" && clone.tagName === "IMG") {
-          const rect = original.getBoundingClientRect()
-          if (original.naturalWidth && original.naturalHeight && Math.abs(rect.width / rect.height - original.naturalWidth / original.naturalHeight) < 0.01) {
-            clone.style.objectFit = "cover"
-          }
-        }
-
-        source = cloneLayer
+        if (posterSrc && layerSrc === elementSrc) cloneLayer.poster = posterSrc
       } else {
-        source = clone
+        cloneLayer = new Image()
+        cloneLayer.className = "popupable-clone-layer"
+        cloneLayer.src = layerSrc
+        cloneLayer.style.imageRendering = styles.imageRendering
       }
+      cloneContainer.append(cloneLayer)
+
+      if (clone.style.objectFit === "fill" && clone.tagName === "IMG") {
+        const rect = original.getBoundingClientRect()
+        if (original.naturalWidth && original.naturalHeight && Math.abs(rect.width / rect.height - original.naturalWidth / original.naturalHeight) < 0.01) {
+          clone.style.objectFit = "cover"
+        }
+      }
+
+      source = cloneLayer
+    } else {
+      source = clone
+    }
+
+    if (video && original.tagName === "VIDEO" && base === original) {
+      if (cloneIsVideo) clone.currentTime = original.currentTime
+      wasPlaying = !original.paused
+      original.pause()
     }
 
     let content
@@ -501,26 +500,28 @@
       }
     }
 
-    const ready = video
-      ? clone.poster
-        ? new Promise(resolve => {
+    const ready = Promise.all([clone, cloneLayer].filter(Boolean).map(el => {
+      if (el.tagName === "VIDEO") {
+        if (el.poster) {
+          return new Promise(resolve => {
             const posterImg = new Image()
             posterImg.addEventListener("load", resolve, { once: true })
             posterImg.addEventListener("error", resolve, { once: true })
-            posterImg.src = clone.poster
+            posterImg.src = el.poster
           })
-        : new Promise(resolve => {
-            if (clone.readyState >= 2) return resolve()
-            clone.addEventListener("loadeddata", resolve, { once: true })
-            clone.addEventListener("error", resolve, { once: true })
-          })
-      : Promise.all([clone, cloneLayer].filter(Boolean).map(el =>
-          el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
-            if (el.readyState >= 2) return resolve()
-            el.addEventListener("loadeddata", resolve, { once: true })
-            el.addEventListener("error", resolve, { once: true })
-          })
-        ))
+        }
+        return new Promise(resolve => {
+          if (el.readyState >= 2) return resolve()
+          el.addEventListener("loadeddata", resolve, { once: true })
+          el.addEventListener("error", resolve, { once: true })
+        })
+      }
+      return el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
+        if (el.readyState >= 2) return resolve()
+        el.addEventListener("loadeddata", resolve, { once: true })
+        el.addEventListener("error", resolve, { once: true })
+      })
+    }))
 
     return {
       id: original.dataset.popupable,
@@ -572,7 +573,7 @@
     const clientX = e.touches?.[0].clientX ?? e.clientX
     if (!draggedPastThreshold && Math.abs(clientX - downX) > DRAG_THRESHOLD && current.video) {
       draggedPastThreshold = true
-      current.clone.style.pointerEvents = "none"
+      current.source.style.pointerEvents = "none"
     }
     current.cloneContainer.parentElement.style.transition = "initial"
     current.cloneContainer.parentElement.style.transform = `translateX(${clientX - downX}px)`
@@ -589,7 +590,7 @@
       const current = activePopup.group ? activePopup.group[activePopup.group.currentIndex] : activePopup
       if (draggedPastThreshold) {
         draggedPastThreshold = false
-        current.clone.style.pointerEvents = null
+        current.source.style.pointerEvents = null
       }
       current.cloneContainer.parentElement.style.transition = null
       current.cloneContainer.parentElement.style.transform = null
@@ -885,18 +886,18 @@
 
       function pauseAndSwitch(newIndex) {
         const prev = group[group.currentIndex]
-        if (prev.video && prev.clone) {
-          if (!prev.clone.paused) {
+        if (prev.video && prev.source) {
+          if (!prev.source.paused) {
             prev.swipePaused = true
-            prev.clone.pause()
+            prev.source.pause()
           }
-          prev.clone.controls = false
+          prev.source.controls = false
         }
         group.currentIndex = newIndex
         const current = group[group.currentIndex]
-        if (current.video && current.clone) {
-          if (!current.zoomable) current.clone.controls = true
-          current.clone.play().catch(() => {})
+        if (current.video && current.source) {
+          if (!current.zoomable) current.source.controls = true
+          current.source.play().catch(() => {})
           current.swipePaused = false
         }
         recalculateVisible()
@@ -1303,7 +1304,7 @@
     document.body.append(popup)
     setCloneToOriginalRect(cloneContainer, original)
     if (cloneObj.video) {
-      cloneObj.clone.play().catch(() => {})
+      cloneObj.source.play().catch(() => {})
     }
     disableScroll()
 
