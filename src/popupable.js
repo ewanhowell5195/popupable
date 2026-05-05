@@ -415,6 +415,9 @@
       clone.src = videoSrc
       clone.playsInline = true
       clone.controls = false
+      const posterAttr = inheritAttr(original, "data-popupable-poster")
+      const posterSrc = (typeof posterAttr === "string" ? posterAttr : null) || (original.tagName === "VIDEO" ? original.getAttribute("poster") : null)
+      if (posterSrc) clone.poster = posterSrc
       clone.style.objectFit = baseStyles.objectFit
       clone.style.objectPosition = baseStyles.objectPosition
       clone.style.background = baseStyles.background
@@ -499,11 +502,18 @@
     }
 
     const ready = video
-      ? new Promise(resolve => {
-          if (clone.readyState >= 2) return resolve()
-          clone.addEventListener("loadeddata", resolve, { once: true })
-          clone.addEventListener("error", resolve, { once: true })
-        })
+      ? clone.poster
+        ? new Promise(resolve => {
+            const posterImg = new Image()
+            posterImg.addEventListener("load", resolve, { once: true })
+            posterImg.addEventListener("error", resolve, { once: true })
+            posterImg.src = clone.poster
+          })
+        : new Promise(resolve => {
+            if (clone.readyState >= 2) return resolve()
+            clone.addEventListener("loadeddata", resolve, { once: true })
+            clone.addEventListener("error", resolve, { once: true })
+          })
       : Promise.all([clone, cloneLayer].filter(Boolean).map(el =>
           el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
             if (el.readyState >= 2) return resolve()
