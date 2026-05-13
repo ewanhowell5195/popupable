@@ -530,8 +530,9 @@
       if (isActiveClone) clone.src = cloneSrc
       clone.style.imageRendering = baseStyles.imageRendering
     }
-    clone.style.objectFit = baseStyles.objectFit
-    clone.style.objectPosition = baseStyles.objectPosition
+    const baseIsMedia = base.tagName === "IMG" || base.tagName === "VIDEO"
+    clone.style.objectFit = baseIsMedia ? baseStyles.objectFit : "cover"
+    if (baseIsMedia) clone.style.objectPosition = baseStyles.objectPosition
     clone.style.background = baseStyles.background
     cloneContainer.append(clone)
     if (clone.tagName === "VIDEO") {
