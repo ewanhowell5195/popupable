@@ -420,6 +420,7 @@
     const styles = getComputedStyle(original)
     const baseStyles = base === original ? styles : getComputedStyle(base)
     const baseSrc = base !== original ? getElementSrc(base) : null
+    const isActiveClone = base === original
 
     const cloneContainer = document.createElement("div")
     cloneContainer.className = "popupable-clone-container"
@@ -447,7 +448,7 @@
     if (cloneIsVideo) {
       clone = document.createElement("video")
       clone.className = "popupable-clone"
-      clone.src = cloneSrc
+      if (isActiveClone) clone.src = cloneSrc
       clone.playsInline = true
       clone.controls = false
       if (!video || hasLayer) {
@@ -455,17 +456,22 @@
         clone.loop = true
         clone.autoplay = true
       }
-      if (posterSrc && cloneSrc === elementSrc) clone.poster = posterSrc
+      if (isActiveClone && posterSrc && cloneSrc === elementSrc) clone.poster = posterSrc
     } else {
       clone = new Image()
       clone.className = "popupable-clone"
-      clone.src = cloneSrc
+      if (isActiveClone) clone.src = cloneSrc
       clone.style.imageRendering = baseStyles.imageRendering
     }
     clone.style.objectFit = baseStyles.objectFit
     clone.style.objectPosition = baseStyles.objectPosition
     clone.style.background = baseStyles.background
     cloneContainer.append(clone)
+    if (clone.tagName === "VIDEO") {
+      clone.addEventListener("loadedmetadata", () => updateExpandedSize())
+    } else {
+      clone.addEventListener("load", () => updateExpandedSize())
+    }
 
     if (hasLayer) {
       const layerSrc = popupableSrc || elementSrc
@@ -473,7 +479,7 @@
       if (layerIsVideo) {
         cloneLayer = document.createElement("video")
         cloneLayer.className = "popupable-clone-layer"
-        cloneLayer.src = layerSrc
+        if (isActiveClone) cloneLayer.src = layerSrc
         cloneLayer.playsInline = true
         cloneLayer.controls = false
         if (!video) {
@@ -481,14 +487,19 @@
           cloneLayer.loop = true
           cloneLayer.autoplay = true
         }
-        if (posterSrc && layerSrc === elementSrc) cloneLayer.poster = posterSrc
+        if (isActiveClone && posterSrc && layerSrc === elementSrc) cloneLayer.poster = posterSrc
       } else {
         cloneLayer = new Image()
         cloneLayer.className = "popupable-clone-layer"
-        cloneLayer.src = layerSrc
+        if (isActiveClone) cloneLayer.src = layerSrc
         cloneLayer.style.imageRendering = styles.imageRendering
       }
       cloneContainer.append(cloneLayer)
+      if (cloneLayer.tagName === "VIDEO") {
+        cloneLayer.addEventListener("loadedmetadata", () => updateExpandedSize())
+      } else {
+        cloneLayer.addEventListener("load", () => updateExpandedSize())
+      }
 
       if (clone.style.objectFit === "fill" && clone.tagName === "IMG") {
         const rect = original.getBoundingClientRect()
@@ -550,26 +561,28 @@
 
     const els = [clone, cloneLayer].filter(Boolean)
     const videoReady = Promise.all(els.filter(el => el.tagName === "VIDEO").map(el => {
+      const metaPromise = new Promise(resolve => {
+        if (el.readyState >= 1) return resolve()
+        el.addEventListener("loadedmetadata", resolve, { once: true })
+        el.addEventListener("error", resolve, { once: true })
+      })
       if (el.poster) {
-        return new Promise(resolve => {
+        const posterPromise = new Promise(resolve => {
           const posterImg = new Image()
           posterImg.addEventListener("load", resolve, { once: true })
           posterImg.addEventListener("error", resolve, { once: true })
           posterImg.src = el.poster
         })
+        return Promise.all([posterPromise, metaPromise])
       }
-      return new Promise(resolve => {
-        if (el.readyState >= 2) return resolve()
-        el.addEventListener("loadeddata", resolve, { once: true })
-        el.addEventListener("error", resolve, { once: true })
-      })
+      return metaPromise
     }))
 
     const originalCloneSrc = cloneSrc
     const originalLayerSrc = cloneLayer ? (popupableSrc || elementSrc) : null
-    const clonePosterSrc = clone.tagName === "VIDEO" ? clone.poster : null
-    const layerPosterSrc = cloneLayer && cloneLayer.tagName === "VIDEO" ? cloneLayer.poster : null
-    let released = false
+    const clonePosterSrc = clone.tagName === "VIDEO" && posterSrc && cloneSrc === elementSrc ? posterSrc : null
+    const layerPosterSrc = cloneLayer && cloneLayer.tagName === "VIDEO" && posterSrc && (popupableSrc || elementSrc) === elementSrc ? posterSrc : null
+    let released = !isActiveClone
     let decodePromise = null
     function ensureLoaded() {
       if (!released) return
