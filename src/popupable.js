@@ -178,11 +178,37 @@
   }
 
   const DECODE_WINDOW = 3
-  function buildDecodeQueue(state, idx = state.group?.currentIndex) {
+  function parseCssTime(value) {
+    if (!value) return 0
+    const v = parseFloat(value)
+    if (Number.isNaN(v)) return 0
+    return /ms\s*$/i.test(value) ? v : v * 1000
+  }
+  function getReleaseDelay(state) {
+    const el = state?.popup || document.documentElement
+    return parseCssTime(getComputedStyle(el).getPropertyValue("--popupable-switch-duration"))
+  }
+  function buildDecodeQueue(state, idx = state.group?.currentIndex, { delayRelease = true } = {}) {
     if (!state.group) return
     const len = state.group.length
+    const releaseDelay = delayRelease ? getReleaseDelay(state) : 0
     for (let i = 0; i < len; i++) {
-      if (Math.abs(i - idx) > DECODE_WINDOW) state.group[i].releaseDecode?.()
+      const item = state.group[i]
+      if (Math.abs(i - idx) > DECODE_WINDOW) {
+        if (item.releaseDecode && !item._releaseTimer) {
+          if (releaseDelay <= 0) {
+            item.releaseDecode()
+          } else {
+            item._releaseTimer = setTimeout(() => {
+              item._releaseTimer = null
+              item.releaseDecode()
+            }, releaseDelay)
+          }
+        }
+      } else if (item._releaseTimer) {
+        clearTimeout(item._releaseTimer)
+        item._releaseTimer = null
+      }
     }
     const queue = []
     if (idx !== state.group.currentIndex && idx >= 0 && idx < len) queue.push(state.group[idx])
@@ -217,7 +243,7 @@
       const pending = dragDecodePending
       dragDecodePending = -1
       if (pending >= 0 && activePopup?.group && pending !== activePopup.group.currentIndex) {
-        buildDecodeQueue(activePopup, pending)
+        buildDecodeQueue(activePopup, pending, { delayRelease: false })
       }
     }, wait)
   }
@@ -256,8 +282,12 @@
       openTransitionContainer.removeEventListener("transitionend", transition.listener)
       popup.classList.add("popupable-open")
       const openCurrent = group ? group[group.currentIndex] : toOpen
-      if (openCurrent.video && !openCurrent.zoomable) {
-        openCurrent.source.controls = true
+      if (openCurrent.video) {
+        if (openCurrent.zoomable) {
+          openCurrent.source.controls = false
+        } else if (!openCurrent.explicitControls) {
+          openCurrent.source.controls = true
+        }
       }
       if (group) {
         for (const entry of group) {
@@ -283,6 +313,11 @@
     activePopup.state = "close"
     activePopup.decodeAborted = true
     activePopup.decodeQueue = null
+    if (activePopup.group) {
+      for (const item of activePopup.group) {
+        if (item._releaseTimer) { clearTimeout(item._releaseTimer); item._releaseTimer = null }
+      }
+    }
     document.body.classList.add("popupable-block-touch")
     setTimeout(() => document.body.classList.remove("popupable-block-touch"), 300)
 
@@ -552,6 +587,7 @@
     }
 
     const attrSpec = inheritAttr(original, "data-popupable-attr")
+    let explicitControls = false
     if (typeof attrSpec === "string") {
       for (const part of attrSpec.split(",")) {
         const trimmed = part.trim()
@@ -559,6 +595,7 @@
         const eqIdx = trimmed.indexOf("=")
         if (eqIdx === -1) {
           source[trimmed] = true
+          if (trimmed === "controls") explicitControls = true
         } else {
           const key = trimmed.slice(0, eqIdx).trim()
           const raw = trimmed.slice(eqIdx + 1).trim()
@@ -567,6 +604,7 @@
           else if (raw === "false") source[key] = false
           else if (raw !== "" && !Number.isNaN(num)) source[key] = num
           else source[key] = raw
+          if (key === "controls") explicitControls = true
         }
       }
     }
@@ -616,9 +654,31 @@
     const layerPosterSrc = cloneLayer && cloneLayer.tagName === "VIDEO" && posterSrc && (popupableSrc || elementSrc) === elementSrc ? posterSrc : null
     let released = !isActiveClone
     let decodePromise = null
+    const rand = (min, max) => min + Math.random() * (max - min)
+    const hsl = (h, s, l) => `hsl(${h.toFixed(0)} ${s.toFixed(0)}% ${l.toFixed(0)}%)`
+    const mood = Math.random()
+    let baseLight, peakLight, sat
+    if (mood < 0.2)       { baseLight = rand(6, 14);  peakLight = rand(22, 38); sat = rand(20, 45) }
+    else if (mood < 0.55) { baseLight = rand(14, 26); peakLight = rand(38, 58); sat = rand(25, 55) }
+    else if (mood < 0.85) { baseLight = rand(22, 38); peakLight = rand(58, 75); sat = rand(35, 65) }
+    else                  { baseLight = rand(32, 50); peakLight = rand(72, 90); sat = rand(40, 75) }
+    const baseHue = rand(0, 360)
+    const accentHue = (baseHue + rand(20, 140)) % 360
+    const glowHue = (baseHue + rand(-40, 220) + 360) % 360
+    cloneContainer.style.setProperty("--popupable-loading-x1", rand(0, 100).toFixed(0) + "%")
+    cloneContainer.style.setProperty("--popupable-loading-y1", rand(0, 100).toFixed(0) + "%")
+    cloneContainer.style.setProperty("--popupable-loading-x2", rand(0, 100).toFixed(0) + "%")
+    cloneContainer.style.setProperty("--popupable-loading-y2", rand(0, 100).toFixed(0) + "%")
+    cloneContainer.style.setProperty("--popupable-loading-c1", `hsla(${glowHue.toFixed(0)} ${Math.min(95, sat + rand(10, 25)).toFixed(0)}% ${peakLight.toFixed(0)}% / ${rand(0.55, 0.9).toFixed(2)})`)
+    cloneContainer.style.setProperty("--popupable-loading-c2", `hsla(${accentHue.toFixed(0)} ${sat.toFixed(0)}% ${(peakLight * 0.8).toFixed(0)}% / ${rand(0.4, 0.75).toFixed(2)})`)
+    cloneContainer.style.setProperty("--popupable-loading-angle", rand(0, 360).toFixed(0) + "deg")
+    cloneContainer.style.setProperty("--popupable-loading-a", hsl(baseHue, sat * 0.6, baseLight))
+    cloneContainer.style.setProperty("--popupable-loading-b", hsl(accentHue, sat * 0.8, (baseLight + peakLight) / 2))
+    if (released) cloneContainer.classList.add("popupable-clone-loading")
     function ensureLoaded() {
       if (!released) return
       released = false
+      cloneContainer.classList.remove("popupable-clone-loading")
       if (originalCloneSrc && !clone.getAttribute("src")) {
         clone.src = originalCloneSrc
         if (clone.tagName === "VIDEO" && clonePosterSrc) clone.poster = clonePosterSrc
@@ -632,6 +692,7 @@
       if (released) return
       released = true
       decodePromise = null
+      cloneContainer.classList.add("popupable-clone-loading")
       if (clone.tagName === "VIDEO") {
         if (!clone.paused) clone.pause()
         clone.removeAttribute("src")
@@ -690,6 +751,7 @@
       zoomable,
       source,
       video,
+      explicitControls,
       wasPlaying
     }
   }
