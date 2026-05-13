@@ -178,20 +178,52 @@
   }
 
   const DECODE_WINDOW = 3
-  function buildDecodeQueue(state) {
+  function buildDecodeQueue(state, idx = state.group?.currentIndex) {
     if (!state.group) return
-    const idx = state.group.currentIndex
     const len = state.group.length
     for (let i = 0; i < len; i++) {
       if (Math.abs(i - idx) > DECODE_WINDOW) state.group[i].releaseDecode?.()
     }
     const queue = []
+    if (idx !== state.group.currentIndex && idx >= 0 && idx < len) queue.push(state.group[idx])
     for (let offset = 1; offset <= DECODE_WINDOW; offset++) {
       if (idx + offset < len) queue.push(state.group[idx + offset])
       if (idx - offset >= 0) queue.push(state.group[idx - offset])
     }
     state.decodeQueue = queue
     runDecodeQueue(state)
+  }
+
+  function projectSnapIndex(group, dx) {
+    const W = window.innerWidth
+    const dxa = Math.abs(dx)
+    const threshold = Math.max(W * 0.1, 64)
+    if (dxa <= threshold) return group.currentIndex
+    const multiplier = Math.max(0, Math.floor((dxa - W / 2) / W))
+    const steps = multiplier + 1
+    const direction = dx > 0 ? -1 : 1
+    return Math.max(0, Math.min(group.length - 1, group.currentIndex + direction * steps))
+  }
+
+  const DRAG_DECODE_INTERVAL = 100
+  let dragDecodeLastAt = 0, dragDecodeTimer = null, dragDecodePending = -1
+  function scheduleDragDecodeQueue(idx) {
+    dragDecodePending = idx
+    if (dragDecodeTimer) return
+    const wait = Math.max(0, DRAG_DECODE_INTERVAL - (performance.now() - dragDecodeLastAt))
+    dragDecodeTimer = setTimeout(() => {
+      dragDecodeTimer = null
+      dragDecodeLastAt = performance.now()
+      const pending = dragDecodePending
+      dragDecodePending = -1
+      if (pending >= 0 && activePopup?.group && pending !== activePopup.group.currentIndex) {
+        buildDecodeQueue(activePopup, pending)
+      }
+    }, wait)
+  }
+  function cancelDragDecodeQueue() {
+    if (dragDecodeTimer) { clearTimeout(dragDecodeTimer); dragDecodeTimer = null }
+    dragDecodePending = -1
   }
 
   async function runDecodeQueue(state) {
@@ -694,6 +726,12 @@
     }
     current.cloneContainer.parentElement.style.transition = "initial"
     current.cloneContainer.parentElement.style.transform = `translateX(${clientX - downX}px)`
+
+    const projected = projectSnapIndex(activePopup.group, clientX - downX)
+    if (projected !== activePopup.lastProjectedIndex) {
+      activePopup.lastProjectedIndex = projected
+      scheduleDragDecodeQueue(projected)
+    }
   }
 
   document.addEventListener("mousemove", handleMove)
@@ -704,6 +742,7 @@
 
     if (dragging) {
       dragging = false
+      cancelDragDecodeQueue()
       const current = activePopup.group ? activePopup.group[activePopup.group.currentIndex] : activePopup
       if (draggedPastThreshold) {
         draggedPastThreshold = false
@@ -999,6 +1038,7 @@
         }
         activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable && !current.video)
         updateExpandedSize()
+        activePopup.lastProjectedIndex = activePopup.group.currentIndex
         buildDecodeQueue(activePopup)
       }
 
