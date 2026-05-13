@@ -973,6 +973,20 @@
     </section>
 
     <section>
+      <h2>Video with passthrough attrs (muted, loop, volume)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-attr="muted, loop, volume=0.3"</code> to apply attributes/properties to the popup video.</p>
+
+      <video
+        src="https://www.tekeye.uk/html/images/Joren_Falls_Izu_Jap.mp4"
+        data-popupable
+        data-popupable-attr="muted, loop, volume=0.3"
+        muted
+        autoplay
+        loop
+      ></video>
+    </section>
+
+    <section>
       <h2>Video with poster</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Video with a <code>poster</code> attribute. The popup should open as soon as the poster loads (instead of waiting for the video), then start playing once buffered.</p>
 

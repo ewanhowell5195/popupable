@@ -177,6 +177,33 @@
     cloneContainer.style.height = height + "px"
   }
 
+  const DECODE_WINDOW = 3
+  function buildDecodeQueue(state) {
+    if (!state.group) return
+    const idx = state.group.currentIndex
+    const len = state.group.length
+    for (let i = 0; i < len; i++) {
+      if (Math.abs(i - idx) > DECODE_WINDOW) state.group[i].releaseDecode?.()
+    }
+    const queue = []
+    for (let offset = 1; offset <= DECODE_WINDOW; offset++) {
+      if (idx + offset < len) queue.push(state.group[idx + offset])
+      if (idx - offset >= 0) queue.push(state.group[idx - offset])
+    }
+    state.decodeQueue = queue
+    runDecodeQueue(state)
+  }
+
+  async function runDecodeQueue(state) {
+    if (state.decodeQueueRunning) return
+    state.decodeQueueRunning = true
+    while (state.decodeQueue && state.decodeQueue.length && !state.decodeAborted) {
+      const next = state.decodeQueue.shift()
+      try { await next.triggerDecode() } catch {}
+    }
+    state.decodeQueueRunning = false
+  }
+
   function openPopupable(toOpen) {
     if (toOpen.state === "open") return
     toOpen.state = "open"
@@ -222,6 +249,8 @@
     if (!activePopup || activePopup.state === "close") return
     popupLoadToken++
     activePopup.state = "close"
+    activePopup.decodeAborted = true
+    activePopup.decodeQueue = null
     document.body.classList.add("popupable-block-touch")
     setTimeout(() => document.body.classList.remove("popupable-block-touch"), 300)
 
@@ -479,6 +508,26 @@
       original.pause()
     }
 
+    const attrSpec = inheritAttr(original, "data-popupable-attr")
+    if (typeof attrSpec === "string") {
+      for (const part of attrSpec.split(",")) {
+        const trimmed = part.trim()
+        if (!trimmed) continue
+        const eqIdx = trimmed.indexOf("=")
+        if (eqIdx === -1) {
+          source[trimmed] = true
+        } else {
+          const key = trimmed.slice(0, eqIdx).trim()
+          const raw = trimmed.slice(eqIdx + 1).trim()
+          const num = Number(raw)
+          if (raw === "true") source[key] = true
+          else if (raw === "false") source[key] = false
+          else if (raw !== "" && !Number.isNaN(num)) source[key] = num
+          else source[key] = raw
+        }
+      }
+    }
+
     let content
     if (popupableTitle || popupableDescription) {
       content = document.createElement("div")
@@ -499,28 +548,81 @@
       }
     }
 
-    const ready = Promise.all([clone, cloneLayer].filter(Boolean).map(el => {
-      if (el.tagName === "VIDEO") {
-        if (el.poster) {
-          return new Promise(resolve => {
-            const posterImg = new Image()
-            posterImg.addEventListener("load", resolve, { once: true })
-            posterImg.addEventListener("error", resolve, { once: true })
-            posterImg.src = el.poster
-          })
-        }
+    const els = [clone, cloneLayer].filter(Boolean)
+    const videoReady = Promise.all(els.filter(el => el.tagName === "VIDEO").map(el => {
+      if (el.poster) {
         return new Promise(resolve => {
-          if (el.readyState >= 2) return resolve()
-          el.addEventListener("loadeddata", resolve, { once: true })
-          el.addEventListener("error", resolve, { once: true })
+          const posterImg = new Image()
+          posterImg.addEventListener("load", resolve, { once: true })
+          posterImg.addEventListener("error", resolve, { once: true })
+          posterImg.src = el.poster
         })
       }
-      return el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
+      return new Promise(resolve => {
         if (el.readyState >= 2) return resolve()
         el.addEventListener("loadeddata", resolve, { once: true })
         el.addEventListener("error", resolve, { once: true })
       })
     }))
+
+    const originalCloneSrc = cloneSrc
+    const originalLayerSrc = cloneLayer ? (popupableSrc || elementSrc) : null
+    const clonePosterSrc = clone.tagName === "VIDEO" ? clone.poster : null
+    const layerPosterSrc = cloneLayer && cloneLayer.tagName === "VIDEO" ? cloneLayer.poster : null
+    let released = false
+    let decodePromise = null
+    function ensureLoaded() {
+      if (!released) return
+      released = false
+      if (originalCloneSrc && !clone.getAttribute("src")) {
+        clone.src = originalCloneSrc
+        if (clone.tagName === "VIDEO" && clonePosterSrc) clone.poster = clonePosterSrc
+      }
+      if (cloneLayer && originalLayerSrc && !cloneLayer.getAttribute("src")) {
+        cloneLayer.src = originalLayerSrc
+        if (cloneLayer.tagName === "VIDEO" && layerPosterSrc) cloneLayer.poster = layerPosterSrc
+      }
+    }
+    function releaseDecode() {
+      if (released) return
+      released = true
+      decodePromise = null
+      if (clone.tagName === "VIDEO") {
+        if (!clone.paused) clone.pause()
+        clone.removeAttribute("src")
+        clone.removeAttribute("poster")
+        clone.load()
+      } else {
+        clone.removeAttribute("src")
+      }
+      if (cloneLayer) {
+        if (cloneLayer.tagName === "VIDEO") {
+          if (!cloneLayer.paused) cloneLayer.pause()
+          cloneLayer.removeAttribute("src")
+          cloneLayer.removeAttribute("poster")
+          cloneLayer.load()
+        } else {
+          cloneLayer.removeAttribute("src")
+        }
+      }
+    }
+    function triggerDecode() {
+      ensureLoaded()
+      if (decodePromise) return decodePromise
+      const imageEls = els.filter(el => el.tagName !== "VIDEO")
+      if (!imageEls.length) {
+        decodePromise = videoReady
+        return decodePromise
+      }
+      decodePromise = Promise.all(imageEls.map(el =>
+        el.decode ? el.decode().catch(() => {}) : new Promise(resolve => {
+          if (el.complete) return resolve()
+          el.addEventListener("load", resolve, { once: true })
+          el.addEventListener("error", resolve, { once: true })
+        })
+      )).then(() => videoReady)
+      return decodePromise
+    }
 
     return {
       id: original.dataset.popupable,
@@ -535,7 +637,10 @@
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
       animationName,
       animation,
-      ready,
+      get ready() { return triggerDecode() },
+      triggerDecode,
+      ensureLoaded,
+      releaseDecode,
       content,
       zoomable,
       source,
@@ -881,6 +986,7 @@
         }
         activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable && !current.video)
         updateExpandedSize()
+        buildDecodeQueue(activePopup)
       }
 
       function pauseAndSwitch(newIndex) {
@@ -1316,7 +1422,10 @@
       requestAnimationFrame(() => {
         cloneContainer.classList.remove("popupable-block-transitions")
         openPopupable(popup._state)
-        if (group) recalculateVisible()
+        if (group) {
+          recalculateVisible()
+          buildDecodeQueue(popup._state)
+        }
       })
     })
 
