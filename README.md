@@ -305,6 +305,18 @@ window.popupableAnimTypes.myAnim = {
 }
 ```
 
+### Shadow DOM
+
+popupable works inside open shadow roots out of the box. Clicks, attribute inheritance, and gallery grouping all cross shadow boundaries. Place `data-popupable-*` attributes on any ancestor and they will inherit into images inside shadow DOM.
+
+The one thing that can't be auto-injected is the hover cursor, because document-level CSS doesn't reach into shadow roots. Add this one-liner to any shadow root that hosts popupable elements:
+
+```css
+[data-popupable], [data-popupable] * { cursor: pointer }
+```
+
+Closed shadow roots (`mode: "closed"`) are not supported from the outside. To use popupable inside a closed shadow root, load it from within that root yourself so it has direct access to the contents.
+
 ## Customization
 
 Popups can be styled using CSS variables:

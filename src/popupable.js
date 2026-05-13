@@ -379,6 +379,8 @@
 
   function updateExpandedSize() {
     if (!activePopup || activePopup.state === "close") return
+    const clonesForCheck = activePopup.group ?? [activePopup]
+    if (clonesForCheck.some(c => c.cloneContainer?.classList.contains("popupable-block-transitions"))) return
 
     const viewportWidth = visualViewport?.width || window.innerWidth
     const viewportHeight = visualViewport?.height || window.innerHeight
@@ -441,8 +443,26 @@
 
   const getElementSrc = el => el.getAttribute("currentSrc") || el.getAttribute("src") || el.getAttribute("data-popupable-src")
 
+  function ancestorClosest(element, selector) {
+    let node = element
+    while (node) {
+      const hit = node.closest?.(selector)
+      if (hit) return hit
+      const root = node.getRootNode?.()
+      node = root instanceof ShadowRoot ? root.host : null
+    }
+    return null
+  }
+
+  function composedClosest(e, selector) {
+    for (const node of e.composedPath()) {
+      if (node.nodeType === 1 && node.matches?.(selector)) return node
+    }
+    return null
+  }
+
   function inheritAttr(element, attr) {
-    const el = element.closest(`[${attr}]`)
+    const el = ancestorClosest(element, `[${attr}]`)
     if (!el) return
     const value = el.getAttribute(attr)
     if (value === "false") return
@@ -771,13 +791,13 @@
   document.addEventListener("pointerdown", e => {
     if (e.button !== 0) return
     if (!dragging) {
-      mouseDownTarget = e.target
+      mouseDownTarget = e.composedPath()[0] ?? e.target
       downX = e.clientX
       downY = e.clientY
     }
 
     if (dragging || activePopup?.state !== "open") return
-    if (e.target.closest(".popupable-header, .popupable-footer")) return
+    if (composedClosest(e, ".popupable-header, .popupable-footer")) return
     dragging = true
   })
 
@@ -846,23 +866,24 @@
       }
     }
 
-    const allowViewportRelease = e.target.closest(".popupable-viewport") && !mouseDownTarget.closest(".popupable-viewport")
+    const upTarget = e.composedPath()[0] ?? e.target
+    const allowViewportRelease = composedClosest(e, ".popupable-viewport") && !ancestorClosest(mouseDownTarget, ".popupable-viewport")
 
     if (
       (!allowViewportRelease &&
-        e.target != mouseDownTarget &&
+        upTarget != mouseDownTarget &&
         !(mouseDownTarget.classList.contains("popupable-clone-container") &&
-          e.target === previousPopup?.original) &&
-        !(mouseDownTarget.closest(".popupable-container") && !e.target.closest(".popupable-container"))) ||
+          upTarget === previousPopup?.original) &&
+        !(ancestorClosest(mouseDownTarget, ".popupable-container") && !composedClosest(e, ".popupable-container"))) ||
       Math.abs(e.clientX - downX) > DRAG_THRESHOLD || Math.abs(e.clientY - downY) > DRAG_THRESHOLD
     ) return
-    const original = (allowViewportRelease ? mouseDownTarget.closest("[data-popupable]") : null) || e.target.closest("[data-popupable]")
+    const original = (allowViewportRelease ? ancestorClosest(mouseDownTarget, "[data-popupable]") : null) || composedClosest(e, "[data-popupable]")
     if (!original) {
       if (allowViewportRelease) {
         closePopupable()
         return
       }
-      if (e.target.closest(".popupable-container")) {
+      if (composedClosest(e, ".popupable-container")) {
         return
       }
       if (activePopup) {
@@ -899,13 +920,14 @@
     const { cloneContainer, content } = cloneObj
 
     let group
-    const groupEl = original.closest("[data-popupable-group]")
+    const groupEl = ancestorClosest(original, "[data-popupable-group]")
     const groupRaw = groupEl?.getAttribute("data-popupable-group")
     const groupValue = groupRaw && groupRaw !== "false" ? groupRaw : null
     if (groupValue) {
       const grouped = []
       const seen = new Set()
-      for (const container of document.querySelectorAll(`[data-popupable-group="${groupValue}"]`)) {
+      const searchRoot = original.getRootNode?.() ?? document
+      for (const container of searchRoot.querySelectorAll(`[data-popupable-group="${groupValue}"]`)) {
         if (container.hasAttribute("data-popupable") && !seen.has(container)) {
           seen.add(container)
           grouped.push(container)
@@ -913,7 +935,7 @@
         for (const el of container.querySelectorAll("[data-popupable]")) {
           if (seen.has(el)) continue
           const ownGroup = el.getAttribute("data-popupable-group")
-          if ((ownGroup === null || ownGroup === groupValue) && el.closest("[data-popupable-group]") === container) {
+          if ((ownGroup === null || ownGroup === groupValue) && ancestorClosest(el, "[data-popupable-group]") === container) {
             seen.add(el)
             grouped.push(el)
           }
