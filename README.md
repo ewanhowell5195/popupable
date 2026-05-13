@@ -16,6 +16,7 @@ Just add `data-popupable` to any image!
 * Multiple built-in animation styles, with support for custom ones
 * Works with mouse, touch, and keyboard
 * Gallery groups with swipe, scroll, keyboard, and button navigation
+* Supports both images and videos
 * Thumbnail strip and image counter
 * Pinch-to-zoom on touch, with optional click/tap-to-zoom support
 * Checkerboard background for transparent images
@@ -65,6 +66,9 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-counter` | Shows a "1 / N" counter when in a group. |
 | `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. |
 | `data-popupable-order="..."` | Controls the order of UI elements. |
+| `data-popupable-type="image\|video"` | Forces popupable to treat the source as an image or video regardless of its tag name or file extension. |
+| `data-popupable-poster="url"` | Poster image to show before a video has loaded. Also used as the placeholder for video thumbnails. |
+| `data-popupable-attr="..."` | Comma-separated list of properties to set on the `<video>` element. See [Videos](#videos). |
 
 ### Inheritance
 
@@ -121,6 +125,59 @@ Add `data-popupable-no-upscale` to prevent the popup from scaling the image beyo
 ```html
 <img src="pixel-art.png" data-popupable data-popupable-no-upscale>
 ```
+
+### Videos
+
+popupable supports videos in the same gallery flow as images. A source is treated as a video if any of these are true:
+
+* The element is a `<video>` tag.
+* The URL ends in one of: `.mp4`, `.m4v`, `.webm`, `.ogv`, `.mov`, `.3gp`, `.m3u8`, `.flv`.
+* `data-popupable-type="video"` is set on the element (or inherited from a parent).
+
+Use `data-popupable-type` explicitly when the tag/extension doesn't match what you actually want — for example, when the URL doesn't reveal the underlying format (a proxied URL, a query-string-only URL), or when you want to force a `<video>` element or a `.mp4`-extensioned URL to be rendered as an image:
+
+```html
+<!-- Force video on a URL that doesn't end with a video extension -->
+<div data-popupable data-popupable-type="video" src="/video/clip"></div>
+
+<!-- Force image on a URL or tag that would otherwise be detected as video -->
+<div data-popupable data-popupable-type="image" src="/render/clip.mp4"></div>
+```
+
+#### Poster images
+
+Add `data-popupable-poster` to provide a still image to show before the video has loaded:
+
+```html
+<video src="clip.mp4" poster="clip.jpg" data-popupable></video>
+<div data-popupable data-popupable-type="video" src="/video/clip" data-popupable-poster="/preview/clip.jpg"></div>
+```
+
+If the source is a `<video>` element, its `poster` attribute is also used automatically.
+
+> **Recommended for large galleries.** When a video has a poster, popupable uses an `<img>` for its thumbnail strip entry instead of a `<video>`. Posters load much faster than a video's metadata range request, especially across many thumbnails at once, so the strip fills in quickly even with hundreds of items.
+
+#### Passing attributes to the `<video>` element
+
+Use `data-popupable-attr` to set properties on the underlying `<video>` element. The value is a comma-separated list of `name` or `name=value` pairs. Values are parsed as `true`/`false`, numbers, or strings.
+
+```html
+<!-- Hide the controls bar -->
+<div data-popupable data-popupable-type="video" data-popupable-attr="controls=false" src="/video/clip"></div>
+
+<!-- Autoplay muted, looping, at 1.5x speed -->
+<div data-popupable data-popupable-type="video" data-popupable-attr="muted,loop,autoplay,playbackRate=1.5" src="/video/clip"></div>
+```
+
+`data-popupable-attr` is inherited, so you can set defaults on a group container.
+
+Notes on `controls`:
+
+* By default, videos get `controls=true` when opened.
+* If `controls` is mentioned in `data-popupable-attr` (e.g. `controls`, `controls=true`, `controls=false`), that explicit value is respected.
+* `data-popupable-zoomable` always forces `controls=false`, regardless of `data-popupable-attr`, because zoomable mode uses click and scroll for zoom/pan.
+
+Videos are always rendered with `playsInline`.
 
 ### Zoom
 
@@ -184,6 +241,10 @@ Default order: `counter,image,content,thumbnails`
 | `Home` | First image |
 | `End` | Last image |
 | `1`–`9` | Jump to image by number |
+
+### Large galleries
+
+popupable is designed to handle galleries with many items. Only the slides near the active one are kept loaded; the rest are unloaded automatically and shown as a blurred-gradient placeholder until you scroll back to them. Prefetching adjusts as you drag, so slides you scroll onto are loaded by the time they reach view.
 
 ### Custom IDs
 

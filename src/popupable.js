@@ -650,6 +650,7 @@
 
     const originalCloneSrc = cloneSrc
     const originalLayerSrc = cloneLayer ? (popupableSrc || elementSrc) : null
+    let loadBehind = isActiveClone || !cloneLayer
     const clonePosterSrc = clone.tagName === "VIDEO" && posterSrc && cloneSrc === elementSrc ? posterSrc : null
     const layerPosterSrc = cloneLayer && cloneLayer.tagName === "VIDEO" && posterSrc && (popupableSrc || elementSrc) === elementSrc ? posterSrc : null
     let released = !isActiveClone
@@ -679,13 +680,20 @@
       if (!released) return
       released = false
       cloneContainer.classList.remove("popupable-clone-loading")
-      if (originalCloneSrc && !clone.getAttribute("src")) {
+      if (loadBehind && originalCloneSrc && !clone.getAttribute("src")) {
         clone.src = originalCloneSrc
         if (clone.tagName === "VIDEO" && clonePosterSrc) clone.poster = clonePosterSrc
       }
       if (cloneLayer && originalLayerSrc && !cloneLayer.getAttribute("src")) {
         cloneLayer.src = originalLayerSrc
         if (cloneLayer.tagName === "VIDEO" && layerPosterSrc) cloneLayer.poster = layerPosterSrc
+      }
+    }
+    function markAsActiveInGroup() {
+      loadBehind = true
+      if (!released && originalCloneSrc && !clone.getAttribute("src")) {
+        clone.src = originalCloneSrc
+        if (clone.tagName === "VIDEO" && clonePosterSrc) clone.poster = clonePosterSrc
       }
     }
     function releaseDecode() {
@@ -746,6 +754,7 @@
       get ready() { return triggerDecode() },
       triggerDecode,
       ensureLoaded,
+      markAsActiveInGroup,
       releaseDecode,
       content,
       zoomable,
@@ -962,7 +971,8 @@
         thumbnailItems = group.map((entry, i) => {
           let thumbnail
           if (entry.video) {
-            const poster = entry.original.getAttribute("poster")
+            const posterAttr = inheritAttr(entry.original, "data-popupable-poster")
+            const poster = (typeof posterAttr === "string" ? posterAttr : null) || (entry.original.tagName === "VIDEO" ? entry.original.getAttribute("poster") : null)
             if (poster) {
               thumbnail = new Image()
               thumbnail.src = poster
@@ -972,6 +982,8 @@
               thumbnail.muted = true
               thumbnail.playsInline = true
               thumbnail.preload = "metadata"
+              thumbnail.disablePictureInPicture = true
+              thumbnail.disableRemotePlayback = true
             }
           } else {
             thumbnail = new Image()
@@ -1029,6 +1041,7 @@
 
       recalculateVisible = async () => {
         const current = group[group.currentIndex]
+        current.markAsActiveInGroup()
         await current.ready
         if (group.currentIndex) {
           prev.classList.remove("popupable-button-disabled")

@@ -438,10 +438,6 @@ video.popupable-clone:fullscreen {
   cursor: grabbing;
 }
 
-video.popupable-thumbnail {
-  pointer-events: none;
-}
-
 .popupable-thumbnail {
   width: 64px;
   height: 64px;
