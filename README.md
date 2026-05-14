@@ -65,6 +65,7 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-group="name"` | Groups images into a navigable gallery. Can be placed on a container element to group all `data-popupable` children. |
 | `data-popupable-counter` | Shows a "1 / N" counter when in a group. |
 | `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. |
+| `data-popupable-thumb="url"` | Image to use for this element in the thumbnail strip. Falls back to `data-popupable-src` and then `src`. Useful for serving a small thumbnail image instead of letting the strip render the full popup source, which keeps the strip lightweight even with many large images. |
 | `data-popupable-order="..."` | Controls the order of UI elements. |
 | `data-popupable-type="image\|video"` | Forces popupable to treat the source as an image or video regardless of its tag name or file extension. |
 | `data-popupable-poster="url"` | Poster image to show before a video has loaded. Also used as the placeholder for video thumbnails. |

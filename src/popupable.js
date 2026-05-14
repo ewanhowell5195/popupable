@@ -41,6 +41,19 @@
     if (keys.includes(e.key)) e.preventDefault()
   }
 
+  function getGroupAverageAspect(state) {
+    if (!state?.group) return 0
+    let sum = 0, count = 0
+    for (const item of state.group) {
+      const src = item.source
+      const sw = src ? (src.naturalWidth || src.videoWidth) : 0
+      const sh = src ? (src.naturalHeight || src.videoHeight) : 0
+      const aspect = (sw && sh) ? sw / sh : item.knownAspect
+      if (aspect) { sum += aspect; count++ }
+    }
+    return count > 0 ? sum / count : 0
+  }
+
   function calcExpandedRect(clone) {
     const original = clone.original
     const viewportWidth = visualViewport?.width || window.innerWidth
@@ -63,7 +76,7 @@
     } else {
       const sw = clone.source.naturalWidth || clone.source.videoWidth
       const sh = clone.source.naturalHeight || clone.source.videoHeight
-      aspect = (sw / sh) || 1
+      aspect = (sw / sh) || getGroupAverageAspect(activePopup) || 1
     }
 
     let topReserved = 0
@@ -496,6 +509,7 @@
   }
 
   function cloneElement(original, base = original) {
+    const cloneObj = { knownAspect: 0 }
     const rawAnim = inheritAttr(original, "data-popupable-anim")
     const animationName = popupableAnimTypes[rawAnim] ? rawAnim : "expand"
     const animation = popupableAnimTypes[animationName]
@@ -555,10 +569,15 @@
     if (baseIsMedia) clone.style.objectPosition = baseStyles.objectPosition
     clone.style.background = baseStyles.background
     cloneContainer.append(clone)
+    const captureAspect = el => {
+      const w = el.naturalWidth || el.videoWidth
+      const h = el.naturalHeight || el.videoHeight
+      if (w && h) cloneObj.knownAspect = w / h
+    }
     if (clone.tagName === "VIDEO") {
-      clone.addEventListener("loadedmetadata", () => updateExpandedSize())
+      clone.addEventListener("loadedmetadata", () => { captureAspect(clone); updateExpandedSize() })
     } else {
-      clone.addEventListener("load", () => updateExpandedSize())
+      clone.addEventListener("load", () => { captureAspect(clone); updateExpandedSize() })
     }
 
     if (hasLayer) {
@@ -584,9 +603,9 @@
       }
       cloneContainer.append(cloneLayer)
       if (cloneLayer.tagName === "VIDEO") {
-        cloneLayer.addEventListener("loadedmetadata", () => updateExpandedSize())
+        cloneLayer.addEventListener("loadedmetadata", () => { captureAspect(cloneLayer); updateExpandedSize() })
       } else {
-        cloneLayer.addEventListener("load", () => updateExpandedSize())
+        cloneLayer.addEventListener("load", () => { captureAspect(cloneLayer); updateExpandedSize() })
       }
 
       if (clone.style.objectFit === "fill" && clone.tagName === "IMG") {
@@ -759,7 +778,7 @@
       return decodePromise
     }
 
-    return {
+    return Object.assign(cloneObj, {
       id: original.dataset.popupable,
       original,
       cloneContainer,
@@ -783,7 +802,7 @@
       video,
       explicitControls,
       wasPlaying
-    }
+    })
   }
 
   let dragging, downX, downY
@@ -993,12 +1012,14 @@
         thumbnailsContainer.className = "popupable-thumbnails"
         thumbnailItems = group.map((entry, i) => {
           let thumbnail
+          const thumbAttr = inheritAttr(entry.original, "data-popupable-thumb")
+          const thumbSrc = typeof thumbAttr === "string" ? thumbAttr : null
           if (entry.video) {
             const posterAttr = inheritAttr(entry.original, "data-popupable-poster")
             const poster = (typeof posterAttr === "string" ? posterAttr : null) || (entry.original.tagName === "VIDEO" ? entry.original.getAttribute("poster") : null)
-            if (poster) {
+            if (thumbSrc || poster) {
               thumbnail = new Image()
-              thumbnail.src = poster
+              thumbnail.src = thumbSrc || poster
             } else {
               thumbnail = document.createElement("video")
               thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
@@ -1010,7 +1031,7 @@
             }
           } else {
             thumbnail = new Image()
-            thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+            thumbnail.src = thumbSrc || inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
           }
           thumbnail.className = "popupable-thumbnail"
           thumbnail.dataset.thumbnailIndex = i

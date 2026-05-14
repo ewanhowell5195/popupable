@@ -448,6 +448,7 @@ video.popupable-clone:fullscreen {
   outline: 2px solid #0000;
   outline-offset: -2px;
   flex: 0 0 auto;
+  content-visibility: auto;
 }
 
 .popupable-thumbnail:hover {
