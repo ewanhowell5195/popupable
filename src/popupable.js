@@ -443,6 +443,19 @@
     }
   }
 
+  let shadowSheet
+  const styledRoots = new WeakSet()
+  function ensureShadowStyles(el) {
+    const root = el?.getRootNode?.()
+    if (!(root instanceof ShadowRoot) || styledRoots.has(root)) return
+    if (!shadowSheet) {
+      shadowSheet = new CSSStyleSheet()
+      shadowSheet.replaceSync(`.popupable-hide{visibility:hidden!important}.popupable-loading,.popupable-loading *{cursor:wait!important}`)
+    }
+    styledRoots.add(root)
+    root.adoptedStyleSheets = [...root.adoptedStyleSheets, shadowSheet]
+  }
+
   const VIDEO_EXTENSIONS = /\.(mp4|m4v|webm|ogv|mov|3gp|m3u8|flv)(\?|#|$)/i
 
   function isVideo(el) {
@@ -1564,6 +1577,7 @@
 
     Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, closeContainer, goNext, goPrev })
 
+    ensureShadowStyles(original)
     const loadingTimer = setTimeout(() => {
       if (loadToken === popupLoadToken) original.classList.add("popupable-loading")
     }, 250)
