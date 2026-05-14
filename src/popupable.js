@@ -1180,7 +1180,7 @@
             hasPositionedThumbnails = true
           })
         }
-        activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable && !current.video)
+        activePopup.closeContainer.classList.toggle("popupable-button-inactive", !current.zoomable && !(current.video && (!current.explicitControls || current.source.controls)))
         updateExpandedSize()
         activePopup.lastProjectedIndex = activePopup.group.currentIndex
         buildDecodeQueue(activePopup)
@@ -1579,7 +1579,7 @@
     closeContainer.innerHTML = `<div class="popupable-button popupable-close"><svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></svg></div>`
     closeContainer.addEventListener("click", closePopupable)
 
-    if (!cloneObj.zoomable && !cloneObj.video) {
+    if (!cloneObj.zoomable && !(cloneObj.video && (!cloneObj.explicitControls || cloneObj.source.controls))) {
       closeContainer.classList.add("popupable-button-inactive")
     }
 
@@ -2007,7 +2007,7 @@
             enterZoom(state, current, e, 2)
             return
           }
-          if (current.video && (e.target.classList.contains("popupable-clone") || e.target.closest(".popupable-clone-container") === current.cloneContainer)) {
+          if (current.video && current.source.controls && (e.target.classList.contains("popupable-clone") || e.target.closest(".popupable-clone-container") === current.cloneContainer)) {
             return
           }
           closePopupable()
