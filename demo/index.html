@@ -163,12 +163,14 @@
       margin: 20px 0;
     }
 
-    .image-grid img {
+    .image-grid img,
+    .image-grid video {
       width: 100%;
       aspect-ratio: 4 / 3;
       object-fit: cover;
       border-radius: 6px;
       display: block;
+      cursor: pointer;
     }
 
     .image-grid img.square {
@@ -302,6 +304,13 @@
       display: block;
     }
 
+    .attr-heading {
+      margin-top: 20px;
+      margin-bottom: 4px;
+      font-size: 1rem;
+      color: #2c3e50;
+    }
+
     @media (max-width: 768px) {
       .image-grid {
         display: grid;
@@ -363,6 +372,7 @@
           <li>Animates open from the element's original position</li>
           <li>Works with mouse, touch, and keyboard</li>
           <li>Gallery groups with swipe, scroll, keyboard, and button navigation</li>
+          <li>Supports both images and videos</li>
           <li>Thumbnail strip and image counter</li>
           <li>Pinch-to-zoom on touch, with optional click/tap-to-zoom support</li>
           <li>Load a hi-res image on open</li>
@@ -426,7 +436,7 @@
 
       <div class="section">
         <h2>Animation Styles</h2>
-        <p>Use <code>data-popupable-anim</code> to control the open and close animation.</p>
+        <p>Use <code>data-popupable-anim</code> to control the open and close animation. You can also register your own custom animations - see <a href="https://github.com/ewanhowell5195/popupable#custom-animation-styles" target="_blank">Custom animation styles</a> in the README.</p>
         <div class="anim-examples">
           <figure>
             <img src="https://picsum.photos/id/1039/800/600.webp" data-popupable data-popupable-anim="expand" data-anim-fixed>
@@ -550,6 +560,37 @@
         </div>
         <pre>&lt;img src="photo1.webp" data-popupable data-popupable-group="gallery" data-popupable-thumbnails&gt;
 &lt;img src="photo2.webp" data-popupable data-popupable-group="gallery" data-popupable-thumbnails&gt;</pre>
+      </div>
+
+      <div class="section">
+        <h2>Videos</h2>
+        <p>Videos work the same way as images. popupable detects videos automatically from <code>&lt;video&gt;</code> tags or video file extensions.</p>
+        <div class="image-grid" data-popupable-group="videos">
+          <video src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+                 preload="metadata" muted autoplay loop playsinline data-popupable></video>
+          <video src="https://cdn.pixabay.com/video/2024/03/12/203923-922675870_medium.mp4"
+                 preload="metadata" muted autoplay loop playsinline data-popupable
+                 data-popupable-attr="controls=false,loop,autoplay"
+                 data-popupable-title="Autoplay, looping, no controls"></video>
+          <video src="https://cdn.pixabay.com/video/2025/04/10/271161_medium.mp4"
+                 preload="metadata" muted autoplay loop playsinline data-popupable data-popupable-zoomable
+                 data-popupable-title="Zoomable video (pinch / scroll to zoom)"></video>
+          <video src="https://cdn.pixabay.com/video/2026/04/08/345137_medium.mp4"
+                 preload="metadata" muted autoplay loop playsinline data-popupable
+                 data-popupable-attr="playbackRate=4"
+                 data-popupable-title="Playback rate 4x"></video>
+        </div>
+        <pre>&lt;video src="clip.mp4" data-popupable&gt;&lt;/video&gt;
+&lt;video src="clip.mp4" data-popupable data-popupable-attr="controls=false,loop,autoplay"&gt;&lt;/video&gt;
+&lt;video src="clip.mp4" data-popupable data-popupable-attr="playbackRate=4"&gt;&lt;/video&gt;
+&lt;video src="clip.mp4" data-popupable data-popupable-zoomable&gt;&lt;/video&gt;</pre>
+        <p style="margin-top: 20px;">A few extras specific to videos:</p>
+        <h3 class="attr-heading"><code>data-popupable-attr</code></h3>
+        <p>Sets properties on the underlying <code>&lt;video&gt;</code> element (e.g. <code>controls=false,loop,autoplay,playbackRate=2</code>). Comma-separated <code>name</code> or <code>name=value</code> pairs.</p>
+        <h3 class="attr-heading"><code>data-popupable-poster</code></h3>
+        <p>Overrides the poster image used by the popup and thumbnail strip. <code>&lt;video&gt;</code> tags fall back to their native <code>poster</code> attribute, so this is only needed when the source isn't a <code>&lt;video&gt;</code> or when you want a different poster for the popup than the page.</p>
+        <h3 class="attr-heading"><code>data-popupable-type="video"</code></h3>
+        <p>Forces popupable to treat any element as a video when the URL extension doesn't reveal the format. <code>data-popupable-type="image"</code> does the opposite.</p>
       </div>
 
       <div class="section">
