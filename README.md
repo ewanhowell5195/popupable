@@ -162,6 +162,8 @@ If the source is a `<video>` element, its `poster` attribute is also used automa
 
 Use `data-popupable-attr` to set properties on the underlying `<video>` element. The value is a comma-separated list of `name` or `name=value` pairs. Values are parsed as `true`/`false`, numbers, or strings.
 
+Names are JavaScript property names (e.g. `playbackRate`, `playsInline`, `disablePictureInPicture`). They are matched case-insensitively, so both the camelCase property style and the lowercase HTML-attribute style (`playsinline`, `disablepictureinpicture`) are supported.
+
 ```html
 <!-- Hide the controls bar -->
 <div data-popupable data-popupable-type="video" data-popupable-attr="controls=false" src="/video/clip"></div>

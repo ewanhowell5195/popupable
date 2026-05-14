@@ -495,6 +495,17 @@
     return value || true
   }
 
+  function resolveProp(el, key) {
+    if (key in el) return key
+    const lower = key.toLowerCase()
+    for (let proto = el; proto; proto = Object.getPrototypeOf(proto)) {
+      for (const name of Object.getOwnPropertyNames(proto)) {
+        if (name.toLowerCase() === lower) return name
+      }
+    }
+    return key
+  }
+
   function parsePopupableOrder(value) {
     const defaultOrder = ["counter", "image", "content", "thumbnails"]
     const allowed = new Set(defaultOrder)
@@ -647,17 +658,18 @@
         if (!trimmed) continue
         const eqIdx = trimmed.indexOf("=")
         if (eqIdx === -1) {
-          source[trimmed] = true
-          if (trimmed === "controls") explicitControls = true
+          source[resolveProp(source, trimmed)] = true
+          if (trimmed.toLowerCase() === "controls") explicitControls = true
         } else {
           const key = trimmed.slice(0, eqIdx).trim()
           const raw = trimmed.slice(eqIdx + 1).trim()
           const num = Number(raw)
-          if (raw === "true") source[key] = true
-          else if (raw === "false") source[key] = false
-          else if (raw !== "" && !Number.isNaN(num)) source[key] = num
-          else source[key] = raw
-          if (key === "controls") explicitControls = true
+          const prop = resolveProp(source, key)
+          if (raw === "true") source[prop] = true
+          else if (raw === "false") source[prop] = false
+          else if (raw !== "" && !Number.isNaN(num)) source[prop] = num
+          else source[prop] = raw
+          if (key.toLowerCase() === "controls") explicitControls = true
         }
       }
     }
