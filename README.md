@@ -293,6 +293,23 @@ Register your own animation style by adding an object to `window.popupableAnimTy
 | `fade` | boolean | Fades opacity in/out alongside the geometry |
 | `crossfade` | boolean | Crossfades between the thumbnail and alternate source image as it opens |
 | `hideSource` | boolean | Hides the original element while the popup is open |
+| `close` | object | Optional close-time fallback, see below |
+
+If your `position` reads from the original element, the close animation can break when the element is no longer where the popup opened from:
+
+* It became `display: none`
+* It was removed from the DOM
+* It scrolled out of view
+* It got clipped by an `overflow` container
+
+Provide a `close` rule to fall back to a source-independent animation in that case:
+
+| `close` property | Type | Description |
+|---|---|---|
+| `condition(original)` | function | Return `true` if this animation is still valid for the close. If it returns `false`, the `fallback` animation is used to close instead. |
+| `fallback` | string | Name of the animation to close with when `condition` returns `false`. Should be a source-independent style (`pop`, `line`, `float`). The fallback runs directly; its own `close.condition` is not evaluated. |
+
+The built-in `expand` style uses this to fall back to `pop` when the source element isn't visible at close time.
 
 ```js
 window.popupableAnimTypes.myAnim = {

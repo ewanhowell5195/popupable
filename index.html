@@ -96,6 +96,32 @@
         max-height: 360px;
       }
 
+      section video.video-thumb {
+        width: 280px;
+        height: auto;
+      }
+
+      .close-test-scroll,
+      .close-test-clip {
+        width: 200px;
+        height: 150px;
+        border: 1px solid #ccc;
+      }
+
+      .close-test-scroll {
+        overflow: auto;
+      }
+
+      .close-test-clip {
+        overflow: hidden;
+      }
+
+      @media (max-width: 600px) {
+        .hide-on-mobile {
+          display: none;
+        }
+      }
+
       #gallery2-1.popupable-active {
         background: #0A4446BB;
       }
@@ -810,6 +836,53 @@
     </section>
 
     <section>
+      <h2>Close fallback when source becomes unusable</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Each source becomes unusable ~1s after the popup opens (removed, hidden, scrolled away, or clipped). The default <code>expand</code> animation should fall back to <code>pop</code> on close instead of collapsing to nothing. Reopen to retry.</p>
+
+      <div class="row">
+        <figure>
+          <img src="https://picsum.photos/id/1062/1024/1024" class="gallery-thumb" data-popupable data-close-test="remove">
+          <figcaption>source removed from the DOM</figcaption>
+        </figure>
+
+        <figure>
+          <img src="https://picsum.photos/id/1065/1024/1024" class="gallery-thumb" data-popupable data-close-test="hide">
+          <figcaption>source set to <code>display: none</code></figcaption>
+        </figure>
+
+        <figure>
+          <div class="close-test-scroll">
+            <img src="https://picsum.photos/id/1066/1024/1024" class="gallery-thumb" data-popupable data-close-test="scroll">
+            <div style="height: 400px"></div>
+          </div>
+          <figcaption>source scrolled out of an <code>overflow: auto</code> container</figcaption>
+        </figure>
+
+        <figure>
+          <div class="close-test-clip">
+            <img src="https://picsum.photos/id/1067/1024/1024" class="gallery-thumb" data-popupable data-close-test="clip">
+          </div>
+          <figcaption>source clipped out of an <code>overflow: hidden</code> container</figcaption>
+        </figure>
+
+        <figure>
+          <img src="https://picsum.photos/id/1069/1024/1024" class="gallery-thumb" data-popupable data-close-test="translate">
+          <figcaption>source <code>transform</code>-translated out of the viewport</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <section>
+      <h2>Close fallback on viewport change</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">This source is hidden below 600px wide via a media query. Open it at desktop width, narrow the window past 600px while the popup is open, then close, it should fall back to <code>pop</code>. Widen again to reset.</p>
+
+      <figure>
+        <img src="https://picsum.photos/id/1068/1024/1024" class="gallery-thumb hide-on-mobile" data-popupable>
+        <figcaption>source has <code>display: none</code> under 600px wide</figcaption>
+      </figure>
+    </section>
+
+    <section>
       <h2>Zoomable image</h2>
       <p>Click on a zoomable image after popping it up to zoom in on it</p>
 
@@ -984,6 +1057,33 @@
         autoplay
         loop
       ></video>
+    </section>
+
+    <section>
+      <h2>Video without controls (click to dismiss)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">With <code>controls=false</code> the popup video has no controls bar, shows no close button, and a click on the video dismisses the popup like an image. The video with controls keeps the click for play/pause and still shows the close button.</p>
+
+      <div class="row">
+        <video
+          class="video-thumb"
+          src="https://www.tekeye.uk/html/images/Joren_Falls_Izu_Jap.mp4"
+          data-popupable
+          data-popupable-attr="muted, loop, controls=false"
+          muted
+          autoplay
+          loop
+        ></video>
+
+        <video
+          class="video-thumb"
+          src="https://www.tekeye.uk/html/images/Joren_Falls_Izu_Jap.mp4"
+          data-popupable
+          data-popupable-attr="muted, loop"
+          muted
+          autoplay
+          loop
+        ></video>
+      </div>
     </section>
 
     <section>
@@ -1228,6 +1328,49 @@
         video.pause()
         videoObserver.observe(video)
       }
+    </script>
+
+    <script type="module">
+      const closeTests = [...document.querySelectorAll("[data-close-test]")].map(img => {
+        const mode = img.dataset.closeTest
+        const parent = img.parentElement
+        return { img, mode, parent, anchor: img.nextSibling, scroller: mode === "scroll" ? parent : null }
+      })
+
+      function restore({ img, mode, parent, anchor, scroller }) {
+        if (mode === "remove" && !img.isConnected) parent.insertBefore(img, anchor)
+        if (mode === "hide") img.style.display = ""
+        if (mode === "scroll") scroller.scrollTop = 0
+        if (mode === "clip" || mode === "translate") img.style.transform = ""
+      }
+
+      function bust({ img, mode, scroller }) {
+        if (mode === "remove") img.remove()
+        if (mode === "hide") img.style.display = "none"
+        if (mode === "scroll") scroller.scrollTop = 400
+        if (mode === "clip") img.style.transform = "translateY(260px)"
+        if (mode === "translate") img.style.transform = "translate(-9999px, -9999px)"
+      }
+
+      for (const test of closeTests) {
+        test.img.addEventListener("click", () => {
+          clearTimeout(test.timer)
+          test.timer = setTimeout(() => bust(test), 1000)
+        })
+      }
+
+      new MutationObserver(records => {
+        for (const record of records) {
+          for (const node of record.removedNodes) {
+            if (node.nodeType === 1 && node.classList.contains("popupable-container")) {
+              for (const test of closeTests) {
+                clearTimeout(test.timer)
+                restore(test)
+              }
+            }
+          }
+        }
+      }).observe(document.body, { childList: true })
     </script>
 
     <script>

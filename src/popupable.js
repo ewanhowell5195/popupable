@@ -144,6 +144,48 @@
           width: rect.width,
           height: rect.height
         }
+      },
+      close: {
+        condition(original) {
+          if (!original.isConnected) return false
+          if (original.checkVisibility && !original.checkVisibility()) return false
+
+          const rect = original.getBoundingClientRect()
+          if (rect.width === 0 || rect.height === 0) return false
+
+          const intersects = box =>
+            rect.right > box.left && rect.left < box.right &&
+            rect.bottom > box.top && rect.top < box.bottom
+
+          const originalPosition = getComputedStyle(original).position
+          if (originalPosition !== "fixed") {
+            const climb = el => {
+              if (el.parentElement) return el.parentElement
+              const root = el.getRootNode && el.getRootNode()
+              return root instanceof ShadowRoot ? root.host : null
+            }
+            let node = climb(original)
+            let waitingForContainingBlock = originalPosition === "absolute"
+            while (node && node !== document.documentElement) {
+              const style = getComputedStyle(node)
+              const positioned = style.position !== "static"
+              if (!waitingForContainingBlock || positioned) {
+                if (style.overflowX !== "visible" || style.overflowY !== "visible") {
+                  if (!intersects(node.getBoundingClientRect())) return false
+                }
+              }
+              if (positioned) waitingForContainingBlock = false
+              if (style.position === "fixed") break
+              if (style.position === "absolute") waitingForContainingBlock = true
+              node = climb(node)
+            }
+          }
+
+          const viewportWidth = visualViewport?.width || window.innerWidth
+          const viewportHeight = visualViewport?.height || window.innerHeight
+          return intersects({ left: 0, top: 0, right: viewportWidth, bottom: viewportHeight })
+        },
+        fallback: "pop"
       }
     },
     pop: {
@@ -342,6 +384,21 @@
 
     const closingContainer = group ? group[group.currentIndex].cloneContainer : cloneContainer
     activePopup.closingContainer = closingContainer
+
+    const closeRule = activePopup.animation.close
+    if (closeRule?.condition && !closeRule.condition(original)) {
+      const fallbackName = popupableAnimTypes[closeRule.fallback] ? closeRule.fallback : "pop"
+      const fallback = popupableAnimTypes[fallbackName]
+      if (fallback && fallback !== activePopup.animation) {
+        popup.classList.remove(`popupable-anim-${activePopup.animationName}`)
+        popup.classList.add(`popupable-anim-${fallbackName}`)
+        popup.classList.toggle("popupable-crossfade", !!fallback.crossfade)
+        popup.classList.toggle("popupable-fade", !!fallback.fade)
+        activePopup.animation = fallback
+        activePopup.animationName = fallbackName
+      }
+    }
+
     setCloneToOriginalRect(closingContainer, original)
 
     if (group) {
