@@ -1198,7 +1198,7 @@
         group.currentIndex = newIndex
         const current = group[group.currentIndex]
         if (current.video && current.source) {
-          if (!current.zoomable) current.source.controls = true
+          if (!current.zoomable && !current.explicitControls) current.source.controls = true
           current.source.play().catch(() => {})
           current.swipePaused = false
         }
