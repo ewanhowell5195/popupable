@@ -608,11 +608,25 @@
     cloneContainer.className = "popupable-clone-container"
     if (inheritAttr(original, "data-popupable-transparent")) cloneContainer.classList.add("popupable-transparent")
     if (zoomable) cloneContainer.classList.add("popupable-zoomable")
-    cloneContainer.style.borderRadius = styles.borderRadius
     if (animation.styles) {
+      cloneContainer.style.borderRadius = styles.borderRadius
       cloneContainer.style.border = styles.border
       cloneContainer.style.outline = styles.outline
       cloneContainer.style.boxShadow = styles.boxShadow
+      if (!animation.fade) {
+        let inheritedOpacity = 1
+        let opacityNode = original
+        while (opacityNode) {
+          inheritedOpacity *= parseFloat(getComputedStyle(opacityNode).opacity) || 1
+          if (opacityNode.parentElement) {
+            opacityNode = opacityNode.parentElement
+          } else {
+            const root = opacityNode.getRootNode && opacityNode.getRootNode()
+            opacityNode = root instanceof ShadowRoot ? root.host : null
+          }
+        }
+        if (inheritedOpacity < 1) cloneContainer.style.opacity = inheritedOpacity
+      }
     }
 
     const video = isVideo(original)

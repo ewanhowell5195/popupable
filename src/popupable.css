@@ -154,7 +154,7 @@
   border-width: 0 !important;
   outline-width: 0 !important;
   box-shadow: none !important;
-  opacity: 1;
+  opacity: 1 !important;
 }
 
 .popupable-container.popupable-active .popupable-clone-container.popupable-transparent::before {

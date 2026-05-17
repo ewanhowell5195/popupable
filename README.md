@@ -282,6 +282,18 @@ Use `data-popupable-anim` to choose an open/close animation style. The default i
 
 The popup container receives a `popupable-anim-{name}` class (e.g. `popupable-anim-float`), which can be used to apply custom CSS for that animation style.
 
+#### What's inherited from the source element
+
+Animations with `styles: true` (built-in: `expand`) copy the following from the source element to the popup clone at open, then transition them away as it grows:
+
+* `border-radius`
+* `border`
+* `outline`
+* `box-shadow`
+* Effective `opacity` (cumulative through ancestors, so a thumbnail inside a half-transparent wrapper inherits the combined opacity). If the animation also has `fade: true`, opacity inheritance is skipped so the fade goes from `0`.
+
+This is what makes the open animation feel continuous with the page. Animations without `styles: true` (built-ins: `pop`, `line`, `float`) skip this so they don't carry decorations they don't need.
+
 #### Custom animation styles
 
 Register your own animation style by adding an object to `window.popupableAnimTypes`. The object must have a `position` method that receives the original element and the final expanded rect, and returns the starting rect for the open animation (which is also the ending rect for close). Additional static flags control the animation behaviour.
@@ -289,8 +301,8 @@ Register your own animation style by adding an object to `window.popupableAnimTy
 | Property | Type | Description |
 |---|---|---|
 | `position(el, rect)` | function | Returns `{ top, left, width, height }` for the start of the open animation |
-| `styles` | boolean | Copies border, outline, and box-shadow from the element to the popup clone, then transitions them out |
-| `fade` | boolean | Fades opacity in/out alongside the geometry |
+| `styles` | boolean | Copies border-radius, border, outline, box-shadow, and effective opacity from the element to the popup clone, then transitions them out |
+| `fade` | boolean | Fades opacity in/out alongside the geometry. Overrides the opacity inheritance from `styles` so the animation always fades from `0`. |
 | `crossfade` | boolean | Crossfades between the thumbnail and alternate source image as it opens |
 | `hideSource` | boolean | Hides the original element while the popup is open |
 | `close` | object | Optional close-time fallback, see below |
