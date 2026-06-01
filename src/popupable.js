@@ -2098,7 +2098,7 @@
   })
 
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape" || e.key === "Backspace" || e.key === " " || e.key === "Delete") {
+    if (activePopup && (e.key === "Escape" || e.key === "Backspace" || e.key === " " || e.key === "Delete")) {
       if (activePopup.state === "zoomed") {
         activePopup.unzoom()
         return
