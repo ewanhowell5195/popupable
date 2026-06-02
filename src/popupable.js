@@ -376,7 +376,7 @@
     document.body.classList.add("popupable-block-touch")
     setTimeout(() => document.body.classList.remove("popupable-block-touch"), 300)
 
-    const { cloneContainer, original, popup, transition, group, listeners } = activePopup
+    const { cloneContainer, original, popup, transition, group, listeners, wasPlaying } = activePopup
 
     original.classList.remove("popupable-loading")
     popup.classList.remove("popupable-active")
@@ -429,7 +429,7 @@
       if (isOriginalClone && closingClone.video && original.tagName === "VIDEO" && !closingClone.cloneLayer) {
         original.currentTime = closingClone.source.currentTime
       }
-      if (isOriginalClone && closingClone.wasPlaying && original.tagName === "VIDEO") {
+      if (wasPlaying && original.tagName === "VIDEO") {
         original.play()
       }
       popup.remove()
@@ -874,7 +874,7 @@
       return decodePromise
     }
 
-    return Object.assign(cloneObj, {
+    Object.assign(cloneObj, {
       id: original.dataset.popupable,
       original,
       cloneContainer,
@@ -887,7 +887,6 @@
       order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
       animationName,
       animation,
-      get ready() { return triggerDecode() },
       triggerDecode,
       ensureLoaded,
       markAsActiveInGroup,
@@ -899,6 +898,8 @@
       explicitControls,
       wasPlaying
     })
+    Object.defineProperty(cloneObj, "ready", { get: triggerDecode, configurable: true })
+    return cloneObj
   }
 
   let dragging, downX, downY
@@ -1183,6 +1184,11 @@
         const current = group[group.currentIndex]
         current.markAsActiveInGroup()
         await current.ready
+        for (const [i, item] of group.entries()) {
+          if (!item.video || !item.source) continue
+          if (i === group.currentIndex) item.source.play().catch(() => {})
+          else if (!item.source.paused) item.source.pause()
+        }
         if (group.currentIndex) {
           prev.classList.remove("popupable-button-disabled")
         } else {
