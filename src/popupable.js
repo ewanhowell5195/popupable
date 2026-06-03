@@ -1183,12 +1183,6 @@
       recalculateVisible = async () => {
         const current = group[group.currentIndex]
         current.markAsActiveInGroup()
-        await current.ready
-        for (const [i, item] of group.entries()) {
-          if (!item.video || !item.source) continue
-          if (i === group.currentIndex) item.source.play().catch(() => {})
-          else if (!item.source.paused) item.source.pause()
-        }
         if (group.currentIndex) {
           prev.classList.remove("popupable-button-disabled")
         } else {
@@ -1261,6 +1255,12 @@
         updateExpandedSize()
         activePopup.lastProjectedIndex = activePopup.group.currentIndex
         buildDecodeQueue(activePopup)
+        await current.ready
+        for (const [i, item] of group.entries()) {
+          if (!item.video || !item.source) continue
+          if (i === group.currentIndex) item.source.play().catch(() => {})
+          else if (!item.source.paused) item.source.pause()
+        }
       }
 
       function pauseAndSwitch(newIndex) {
