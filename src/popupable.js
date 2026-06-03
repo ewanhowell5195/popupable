@@ -426,11 +426,11 @@
       if (e && e.target !== e.currentTarget) return
       closingContainer.removeEventListener("transitionend", transition.listener)
       original.classList.remove("popupable-hide")
-      if (isOriginalClone && closingClone.video && original.tagName === "VIDEO" && !closingClone.cloneLayer) {
-        original.currentTime = closingClone.source.currentTime
-      }
       if (wasPlaying && original.tagName === "VIDEO") {
-        original.play()
+        if (isOriginalClone && closingClone.video && !closingClone.cloneLayer) {
+          original.currentTime = closingClone.source.currentTime
+        }
+        original.play().catch(() => original.load())
       }
       popup.remove()
       if (check === activePopup) {
@@ -914,6 +914,12 @@
 
     if (dragging || activePopup?.state !== "open") return
     if (composedClosest(e, ".popupable-header, .popupable-footer")) return
+    const current = activePopup.group?.[activePopup.group.currentIndex]
+    if (current?.video && current.source?.controls) {
+      const rect = current.source.getBoundingClientRect()
+      const band = Math.min(60, rect.height * 0.25)
+      if (downX >= rect.left && downX <= rect.right && downY >= rect.bottom - band && downY <= rect.bottom) return
+    }
     dragging = true
   })
 
