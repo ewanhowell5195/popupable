@@ -1676,7 +1676,7 @@
     const loadingTimer = setTimeout(() => {
       if (loadToken === popupLoadToken) original.classList.add("popupable-loading")
     }, 250)
-    await popupState.ready
+    await popupState.triggerDecode()
     clearTimeout(loadingTimer)
     original.classList.remove("popupable-loading")
     if (loadToken !== popupLoadToken || activePopup !== popupState || popupState.state === "close") {
