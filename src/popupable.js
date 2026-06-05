@@ -426,6 +426,7 @@
       if (e && e.target !== e.currentTarget) return
       closingContainer.removeEventListener("transitionend", transition.listener)
       original.classList.remove("popupable-hide")
+      original.classList.remove("popupable-source-open")
       if (wasPlaying && original.tagName === "VIDEO") {
         if (isOriginalClone && closingClone.video && !closingClone.cloneLayer) {
           original.currentTime = closingClone.source.currentTime
@@ -1685,6 +1686,7 @@
 
     cloneContainer.classList.add("popupable-block-transitions")
     if (cloneObj.animation.hideSource) original.classList.add("popupable-hide")
+    else original.classList.add("popupable-source-open")
     if (cloneObj.animation.crossfade) popup.classList.add("popupable-crossfade")
     if (cloneObj.animation.fade) popup.classList.add("popupable-fade")
     document.body.append(popup)

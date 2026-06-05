@@ -282,6 +282,23 @@ Use `data-popupable-anim` to choose an open/close animation style. The default i
 
 The popup container receives a `popupable-anim-{name}` class (e.g. `popupable-anim-float`), which can be used to apply custom CSS for that animation style.
 
+#### Styling the source while its popup is open
+
+While a popup is open, popupable marks the source element it was opened from so you can style it:
+
+| Class | Applied when | Effect |
+|---|---|---|
+| `popupable-hide` | The animation has `hideSource` (built-in: `expand`) | Hides the source with `visibility: hidden` so it doesn't show behind the popup |
+| `popupable-source-open` | The animation does **not** have `hideSource` (built-in: `pop`, `line`, `float`) | No built-in styling. A hook for you to style the still-visible source however you like |
+
+The two are mutually exclusive: a source gets exactly one of them depending on the animation. They are added when the popup starts opening and removed when it finishes closing. In a gallery the class stays on the element the popup was opened from; it does not move as you navigate.
+
+`popupable-source-open` lets you react to the still-visible source. For example, dim it while its `line` popup is open:
+
+```css
+.popupable-source-open { opacity: 0.4; transition: opacity 0.2s; }
+```
+
 #### What's inherited from the source element
 
 Animations with `styles: true` (built-in: `expand`) copy the following from the source element to the popup clone at open, then transition them away as it grows:
