@@ -637,7 +637,7 @@
     const posterSrc = (typeof posterAttr === "string" ? posterAttr : null) || (original.tagName === "VIDEO" ? original.getAttribute("poster") : null)
 
     const cloneSrc = baseSrc || elementSrc || popupableSrc
-    const cloneIsVideo = VIDEO_EXTENSIONS.test(cloneSrc) || (video && cloneSrc === elementSrc)
+    const cloneIsVideo = VIDEO_EXTENSIONS.test(cloneSrc) || (base.tagName === "VIDEO" && cloneSrc === elementSrc)
     const hasLayer = (popupableSrc && elementSrc) || baseSrc
 
     let clone, cloneLayer, source
