@@ -1276,7 +1276,7 @@
             prev.swipePaused = true
             prev.source.pause()
           }
-          prev.source.controls = false
+          if (!prev.explicitControls) prev.source.controls = false
         }
         group.currentIndex = newIndex
         const current = group[group.currentIndex]
