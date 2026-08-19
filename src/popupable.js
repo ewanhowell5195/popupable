@@ -1063,6 +1063,7 @@
       downY = e.touches?.[0].clientY ?? e.clientY
       return
     }
+    if (getReleaseDelay(activePopup) <= 0) return
     const current = activePopup.group[activePopup.group.currentIndex]
     const clientX = e.touches?.[0].clientX ?? e.clientX
     if (!draggedPastThreshold && Math.abs(clientX - downX) > DRAG_THRESHOLD && current.video) {
