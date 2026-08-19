@@ -2,6 +2,9 @@
   let activePopup, previousPopup, mouseDownTarget, popupLoadToken = 0
   const DRAG_THRESHOLD = 3
 
+  const sourceWidth = el => !el ? 0 : el.tagName === "CANVAS" ? el.width : el.naturalWidth || el.videoWidth || 0
+  const sourceHeight = el => !el ? 0 : el.tagName === "CANVAS" ? el.height : el.naturalHeight || el.videoHeight || 0
+
   let hapticLabel
   function triggerHaptic() {
     if (typeof navigator.vibrate === "function") {
@@ -45,9 +48,8 @@
     if (!state?.group) return 0
     let sum = 0, count = 0
     for (const item of state.group) {
-      const src = item.source
-      const sw = src ? (src.naturalWidth || src.videoWidth) : 0
-      const sh = src ? (src.naturalHeight || src.videoHeight) : 0
+      const sw = sourceWidth(item.source)
+      const sh = sourceHeight(item.source)
       const aspect = (sw && sh) ? sw / sh : item.knownAspect
       if (aspect) { sum += aspect; count++ }
     }
@@ -74,8 +76,8 @@
       const rect = original.getBoundingClientRect()
       aspect = rect.width / rect.height
     } else {
-      const sw = clone.source.naturalWidth || clone.source.videoWidth
-      const sh = clone.source.naturalHeight || clone.source.videoHeight
+      const sw = sourceWidth(clone.source)
+      const sh = sourceHeight(clone.source)
       aspect = (sw / sh) || getGroupAverageAspect(activePopup) || 1
     }
 
@@ -107,8 +109,8 @@
     }
     if (clone.noUpscale) {
       const noUpscaleSource = clone.cloneLayer || original
-      const sourceW = noUpscaleSource.naturalWidth || noUpscaleSource.videoWidth
-      const sourceH = noUpscaleSource.naturalHeight || noUpscaleSource.videoHeight
+      const sourceW = sourceWidth(noUpscaleSource)
+      const sourceH = sourceHeight(noUpscaleSource)
       if (sourceW && sourceH) {
         const effectiveSourceW = sourceW / viewportScale
         const effectiveSourceH = sourceH / viewportScale
@@ -433,6 +435,9 @@
         }
         original.play().catch(() => original.load())
       }
+      for (const mirror of popup.querySelectorAll("canvas")) {
+        mirror.popupableStopMirror?.()
+      }
       popup.remove()
       if (check === activePopup) {
         enableScroll()
@@ -595,6 +600,63 @@
     }
   }
 
+  function createCanvasMirror(sourceCanvas, { onResize, fps } = {}) {
+    const mirror = document.createElement("canvas")
+    const ctx = mirror.getContext("2d")
+    const interval = fps ? 1000 / fps : 0
+    let raf = null
+    let running = false
+    let visible = false
+    let lastDraw = 0
+    function draw() {
+      const resized = mirror.width !== sourceCanvas.width || mirror.height !== sourceCanvas.height
+      if (resized) {
+        mirror.width = sourceCanvas.width
+        mirror.height = sourceCanvas.height
+      }
+      if (mirror.width && mirror.height) {
+        ctx.clearRect(0, 0, mirror.width, mirror.height)
+        ctx.drawImage(sourceCanvas, 0, 0)
+      }
+      return resized
+    }
+    draw()
+    function tick(now) {
+      raf = null
+      if (!running || !visible) return
+      if (!interval || now - lastDraw >= interval) {
+        lastDraw = now
+        if (draw() && onResize) onResize()
+      }
+      raf = requestAnimationFrame(tick)
+    }
+    function schedule() {
+      if (running && visible && raf === null) raf = requestAnimationFrame(tick)
+    }
+    const observer = new IntersectionObserver(entries => {
+      visible = entries[entries.length - 1].isIntersecting
+      if (visible) draw()
+      schedule()
+    })
+    mirror.popupableStartMirror = () => {
+      if (running) return
+      running = true
+      observer.observe(mirror)
+      schedule()
+    }
+    mirror.popupableStopMirror = () => {
+      if (!running) return
+      running = false
+      visible = false
+      observer.disconnect()
+      if (raf !== null) {
+        cancelAnimationFrame(raf)
+        raf = null
+      }
+    }
+    return mirror
+  }
+
   function cloneElement(original, base = original) {
     const cloneObj = { knownAspect: 0 }
     const rawAnim = inheritAttr(original, "data-popupable-anim")
@@ -641,13 +703,20 @@
     const posterAttr = inheritAttr(original, "data-popupable-poster")
     const posterSrc = (typeof posterAttr === "string" ? posterAttr : null) || (original.tagName === "VIDEO" ? original.getAttribute("poster") : null)
 
-    const cloneSrc = baseSrc || elementSrc || popupableSrc
-    const cloneIsVideo = VIDEO_EXTENSIONS.test(cloneSrc) || (base.tagName === "VIDEO" && cloneSrc === elementSrc)
-    const hasLayer = (popupableSrc && elementSrc) || baseSrc
+    const elementCanvas = original.tagName === "CANVAS" ? original : null
+    const baseCanvas = base !== original && base.tagName === "CANVAS" ? base : null
+    const cloneCanvas = baseCanvas || (base === original ? elementCanvas : null)
+    const cloneSrc = cloneCanvas ? null : (baseSrc || elementSrc || popupableSrc)
+    const cloneIsVideo = !cloneCanvas && (VIDEO_EXTENSIONS.test(cloneSrc) || (base.tagName === "VIDEO" && cloneSrc === elementSrc))
+    const hasLayer = (popupableSrc && (elementSrc || elementCanvas)) || baseSrc || baseCanvas
 
     let clone, cloneLayer, source
 
-    if (cloneIsVideo) {
+    if (cloneCanvas) {
+      clone = createCanvasMirror(cloneCanvas, { onResize: () => { captureAspect(clone); updateExpandedSize() } })
+      clone.className = "popupable-clone"
+      clone.style.imageRendering = baseStyles.imageRendering
+    } else if (cloneIsVideo) {
       clone = document.createElement("video")
       clone.className = "popupable-clone"
       if (isActiveClone) clone.src = cloneSrc
@@ -665,26 +734,33 @@
       if (isActiveClone) clone.src = cloneSrc
       clone.style.imageRendering = baseStyles.imageRendering
     }
-    const baseIsMedia = base.tagName === "IMG" || base.tagName === "VIDEO"
+    const baseIsMedia = base.tagName === "IMG" || base.tagName === "VIDEO" || base.tagName === "CANVAS"
     clone.style.objectFit = baseIsMedia ? baseStyles.objectFit : "cover"
     if (baseIsMedia) clone.style.objectPosition = baseStyles.objectPosition
     clone.style.background = baseStyles.background
     cloneContainer.append(clone)
     const captureAspect = el => {
-      const w = el.naturalWidth || el.videoWidth
-      const h = el.naturalHeight || el.videoHeight
+      const w = sourceWidth(el)
+      const h = sourceHeight(el)
       if (w && h) cloneObj.knownAspect = w / h
     }
     if (clone.tagName === "VIDEO") {
       clone.addEventListener("loadedmetadata", () => { captureAspect(clone); updateExpandedSize() })
+    } else if (clone.tagName === "CANVAS") {
+      captureAspect(clone)
     } else {
       clone.addEventListener("load", () => { captureAspect(clone); updateExpandedSize() })
     }
 
     if (hasLayer) {
       const layerSrc = popupableSrc || elementSrc
-      const layerIsVideo = VIDEO_EXTENSIONS.test(layerSrc) || (video && layerSrc === elementSrc)
-      if (layerIsVideo) {
+      const layerCanvas = layerSrc ? null : elementCanvas
+      const layerIsVideo = !layerCanvas && (VIDEO_EXTENSIONS.test(layerSrc) || (video && layerSrc === elementSrc))
+      if (layerCanvas) {
+        cloneLayer = createCanvasMirror(layerCanvas, { onResize: () => { captureAspect(cloneLayer); updateExpandedSize() } })
+        cloneLayer.className = "popupable-clone-layer"
+        cloneLayer.style.imageRendering = styles.imageRendering
+      } else if (layerIsVideo) {
         cloneLayer = document.createElement("video")
         cloneLayer.className = "popupable-clone-layer"
         if (isActiveClone) cloneLayer.src = layerSrc
@@ -705,6 +781,8 @@
       cloneContainer.append(cloneLayer)
       if (cloneLayer.tagName === "VIDEO") {
         cloneLayer.addEventListener("loadedmetadata", () => { captureAspect(cloneLayer); updateExpandedSize() })
+      } else if (cloneLayer.tagName === "CANVAS") {
+        captureAspect(cloneLayer)
       } else {
         cloneLayer.addEventListener("load", () => { captureAspect(cloneLayer); updateExpandedSize() })
       }
@@ -830,6 +908,8 @@
         cloneLayer.src = originalLayerSrc
         if (cloneLayer.tagName === "VIDEO" && layerPosterSrc) cloneLayer.poster = layerPosterSrc
       }
+      clone.popupableStartMirror?.()
+      cloneLayer?.popupableStartMirror?.()
     }
     function markAsActiveInGroup() {
       loadBehind = true
@@ -848,6 +928,8 @@
         clone.removeAttribute("src")
         clone.removeAttribute("poster")
         clone.load()
+      } else if (clone.tagName === "CANVAS") {
+        clone.popupableStopMirror()
       } else {
         clone.removeAttribute("src")
       }
@@ -857,6 +939,8 @@
           cloneLayer.removeAttribute("src")
           cloneLayer.removeAttribute("poster")
           cloneLayer.load()
+        } else if (cloneLayer.tagName === "CANVAS") {
+          cloneLayer.popupableStopMirror()
         } else {
           cloneLayer.removeAttribute("src")
         }
@@ -865,7 +949,7 @@
     function triggerDecode() {
       ensureLoaded()
       if (decodePromise) return decodePromise
-      const imageEls = els.filter(el => el.tagName !== "VIDEO")
+      const imageEls = els.filter(el => el.tagName === "IMG")
       if (!imageEls.length) {
         decodePromise = videoReady
         return decodePromise
@@ -878,6 +962,11 @@
         })
       )).then(() => videoReady)
       return decodePromise
+    }
+
+    if (isActiveClone) {
+      clone.popupableStartMirror?.()
+      cloneLayer?.popupableStartMirror?.()
     }
 
     Object.assign(cloneObj, {
@@ -1139,8 +1228,14 @@
               thumbnail.disableRemotePlayback = true
             }
           } else {
-            thumbnail = new Image()
-            thumbnail.src = thumbSrc || inheritStringAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+            const src = thumbSrc || inheritStringAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+            if (!src && entry.original.tagName === "CANVAS") {
+              thumbnail = createCanvasMirror(entry.original, { fps: 10 })
+              thumbnail.popupableStartMirror()
+            } else {
+              thumbnail = new Image()
+              thumbnail.src = src
+            }
           }
           thumbnail.className = "popupable-thumbnail"
           thumbnail.dataset.thumbnailIndex = i

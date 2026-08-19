@@ -16,7 +16,7 @@ Just add `data-popupable` to any image!
 * Multiple built-in animation styles, with support for custom ones
 * Works with mouse, touch, and keyboard
 * Gallery groups with swipe, scroll, keyboard, and button navigation
-* Supports both images and videos
+* Supports images, videos, and live-mirrored canvases
 * Thumbnail strip and image counter
 * Pinch-to-zoom on touch, with optional click/tap-to-zoom support
 * Checkerboard background for transparent images
@@ -181,6 +181,26 @@ Notes on `controls`:
 * `data-popupable-zoomable` always forces `controls=false`, regardless of `data-popupable-attr`, because zoomable mode uses click and scroll for zoom/pan.
 
 Videos are always rendered with `playsInline`.
+
+### Canvases
+
+`<canvas>` elements are supported directly, no attributes needed beyond `data-popupable`:
+
+```html
+<canvas width="800" height="450" data-popupable></canvas>
+```
+
+The popup shows a **live mirror** of the canvas: anything drawn to it while the popup is open (animations, games, charts) is reflected in the popup in real time. Gallery thumbnails for canvases are live mirrors too.
+
+Mirrors only redraw while actually visible: off-screen gallery slides pause until they slide into view, and thumbnails update at a reduced rate and pause entirely when scrolled out of the strip.
+
+`data-popupable-src` works the same as on images: the canvas mirror is used for the seamless expand animation, and the alternate source loads in on top:
+
+```html
+<canvas width="320" height="180" data-popupable data-popupable-src="full-res.png"></canvas>
+```
+
+Canvases can be grouped and mixed freely with images and videos in galleries.
 
 ### Zoom
 

@@ -1332,6 +1332,115 @@
       >
     </section>
 
+    <section>
+      <h2>Canvas (live, animated)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">A <code>&lt;canvas&gt;</code> being redrawn every frame. The popup shows a live mirror, so the animation keeps running inside it.</p>
+
+      <canvas
+        id="canvas-live"
+        width="640"
+        height="360"
+        style="width: 320px; height: 180px;"
+        data-popupable
+      ></canvas>
+    </section>
+
+    <section>
+      <h2>Canvas (static)</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Drawn once, never updated again.</p>
+
+      <canvas
+        id="canvas-static"
+        width="512"
+        height="512"
+        class="gallery-thumb"
+        data-popupable
+      ></canvas>
+    </section>
+
+    <section>
+      <h2>Canvas in a mixed gallery</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Animated canvases grouped with images and a video, with counter and thumbnails. Canvas thumbnails are live mirrors too.</p>
+
+      <div class="row" data-popupable-group="canvas-gallery" data-popupable-counter data-popupable-thumbnails>
+        <canvas id="canvas-group-1" width="512" height="512" class="gallery-thumb" data-popupable></canvas>
+        <img src="https://picsum.photos/id/1015/1024/1024" class="gallery-thumb" data-popupable>
+        <canvas id="canvas-group-2" width="768" height="432" class="gallery-thumb" data-popupable></canvas>
+        <video
+          src="https://cdn.pixabay.com/video/2026/03/08/338904_medium.mp4"
+          class="gallery-thumb"
+          data-popupable
+          muted
+          autoplay
+          loop
+        ></video>
+      </div>
+    </section>
+
+    <script type="module">
+      const live = document.getElementById("canvas-live")
+      const liveCtx = live.getContext("2d")
+      let t = 0
+      function drawLive() {
+        t += 0.016
+        const { width: w, height: h } = live
+        const gradient = liveCtx.createLinearGradient(0, 0, w, h)
+        gradient.addColorStop(0, "#1a2a6c")
+        gradient.addColorStop(1, "#2c5364")
+        liveCtx.fillStyle = gradient
+        liveCtx.fillRect(0, 0, w, h)
+        const x = w / 2 + Math.sin(t * 1.4) * w * 0.35
+        const y = h / 2 + Math.sin(t * 2.3) * h * 0.3
+        liveCtx.fillStyle = "#fdbb2d"
+        liveCtx.beginPath()
+        liveCtx.arc(x, y, 30, 0, Math.PI * 2)
+        liveCtx.fill()
+        liveCtx.fillStyle = "#fff"
+        liveCtx.font = "32px monospace"
+        liveCtx.fillText(t.toFixed(1) + "s", 20, 44)
+        requestAnimationFrame(drawLive)
+      }
+      drawLive()
+
+      const staticCanvas = document.getElementById("canvas-static")
+      const staticCtx = staticCanvas.getContext("2d")
+      for (let i = 0; i < 8; i++) {
+        for (let j = 0; j < 8; j++) {
+          staticCtx.fillStyle = (i + j) % 2 ? "#7b2d8b" : "#e8b93e"
+          staticCtx.fillRect(i * 64, j * 64, 64, 64)
+        }
+      }
+      staticCtx.fillStyle = "#fff"
+      staticCtx.font = "40px system-ui"
+      staticCtx.fillText("static canvas", 120, 266)
+
+      const group1 = document.getElementById("canvas-group-1")
+      const g1 = group1.getContext("2d")
+      const group2 = document.getElementById("canvas-group-2")
+      const g2 = group2.getContext("2d")
+      function drawGroup() {
+        const t1 = performance.now() / 1000
+        g1.fillStyle = "#122"
+        g1.fillRect(0, 0, 512, 512)
+        for (let i = 0; i < 5; i++) {
+          g1.strokeStyle = `hsl(${(t1 * 40 + i * 60) % 360} 70% 55%)`
+          g1.lineWidth = 8
+          g1.beginPath()
+          g1.arc(256, 256, 40 + i * 40 + Math.sin(t1 * 2 + i) * 12, 0, Math.PI * 2)
+          g1.stroke()
+        }
+        g2.fillStyle = "#221"
+        g2.fillRect(0, 0, 768, 432)
+        g2.fillStyle = "#4ec9b0"
+        for (let i = 0; i < 24; i++) {
+          const barH = (Math.sin(t1 * 3 + i * 0.7) * 0.5 + 0.5) * 320
+          g2.fillRect(16 + i * 31, 400 - barH, 22, barH)
+        }
+        requestAnimationFrame(drawGroup)
+      }
+      drawGroup()
+    </script>
+
     <script type="module">
       const toggle = document.getElementById("maintain-aspect-toggle")
       const images = document.querySelectorAll("label + .row img[data-popupable]")

@@ -185,7 +185,8 @@
     }
 
     .image-grid img,
-    .image-grid video {
+    .image-grid video,
+    .image-grid canvas {
       width: 100%;
       aspect-ratio: 4 / 3;
       object-fit: cover;
@@ -425,7 +426,7 @@
           <li>Animates open from the element's original position</li>
           <li>Works with mouse, touch, and keyboard</li>
           <li>Gallery groups with swipe, scroll, keyboard, and button navigation</li>
-          <li>Supports both images and videos</li>
+          <li>Supports images, videos, and live-mirrored canvases</li>
           <li>Thumbnail strip and image counter</li>
           <li>Pinch-to-zoom on touch, with optional click/tap-to-zoom support</li>
           <li>Load a hi-res image on open</li>
@@ -652,6 +653,28 @@
       </div>
 
       <div class="section">
+        <h2>Canvases</h2>
+        <p><code>&lt;canvas&gt;</code> elements work out of the box. The popup shows a <strong>live mirror</strong> of the canvas, so anything drawn to it (animations, games, charts) keeps running inside the popup. Canvas thumbnails are live too. Mirrors pause automatically when off-screen and thumbnails redraw at a reduced rate, so it stays cheap.</p>
+        <div class="image-grid" data-popupable-group="canvases" data-popupable-counter data-popupable-thumbnails>
+          <canvas id="demo-canvas-1" width="800" height="600" data-popupable
+                  data-popupable-title="Orbiting rings" data-popupable-description="A live canvas animation, mirrored into the popup in real time."></canvas>
+          <canvas id="demo-canvas-2" width="800" height="600" data-popupable
+                  data-popupable-title="Wave bars" data-popupable-description="Still animating while popped up, and in the thumbnail strip."></canvas>
+          <canvas id="demo-canvas-3" width="800" height="600" data-popupable
+                  data-popupable-title="Starfield" data-popupable-description="Mirrors pause when their slide is off-screen."></canvas>
+          <canvas id="demo-canvas-4" width="800" height="600" data-popupable
+                  data-popupable-title="Bouncing balls" data-popupable-description="Canvases mix freely with images and videos in groups."></canvas>
+        </div>
+        <pre>&lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
+
+&lt;!-- Canvases group like any other media --&gt;
+&lt;div data-popupable-group="canvases" data-popupable-counter data-popupable-thumbnails&gt;
+  &lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
+  &lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
+&lt;/div&gt;</pre>
+      </div>
+
+      <div class="section">
         <h2>Inheritance</h2>
         <p>All <code>data-popupable-*</code> attributes are inherited from parent elements. Set them once on a container instead of repeating on every image. Set an attribute to <code>"false"</code> to opt out on individual images. The last image below opens without thumbnails.</p>
         <div class="image-grid" data-popupable-group="gallery-inherit" data-popupable-counter data-popupable-thumbnails>
@@ -783,6 +806,78 @@
         }
       })
     }
+
+    const demoCanvases = [1, 2, 3, 4].map(i => {
+      const canvas = document.getElementById(`demo-canvas-${i}`)
+      return { canvas, ctx: canvas.getContext("2d") }
+    })
+    const stars = Array.from({ length: 120 }, () => ({
+      x: Math.random() * 800 - 400,
+      y: Math.random() * 600 - 300,
+      z: Math.random() * 400 + 20
+    }))
+    const balls = Array.from({ length: 6 }, (_, i) => ({
+      x: 100 + i * 120, y: 100 + (i % 3) * 150,
+      vx: 2 + i * 0.7, vy: 1.5 + i * 0.9,
+      r: 24 + i * 6, hue: i * 60
+    }))
+    function drawDemoCanvases(now) {
+      const t = now / 1000
+
+      const c1 = demoCanvases[0].ctx
+      c1.fillStyle = "#101828"
+      c1.fillRect(0, 0, 800, 600)
+      for (let i = 0; i < 6; i++) {
+        c1.strokeStyle = `hsl(${(t * 30 + i * 50) % 360} 70% 60%)`
+        c1.lineWidth = 10
+        c1.beginPath()
+        c1.arc(400, 300, 50 + i * 42 + Math.sin(t * 2 + i) * 14, t * (0.3 + i * 0.1), t * (0.3 + i * 0.1) + Math.PI * 1.4)
+        c1.stroke()
+      }
+
+      const c2 = demoCanvases[1].ctx
+      c2.fillStyle = "#1a1423"
+      c2.fillRect(0, 0, 800, 600)
+      for (let i = 0; i < 26; i++) {
+        const h = (Math.sin(t * 2.5 + i * 0.55) * 0.5 + 0.5) * 440 + 40
+        c2.fillStyle = `hsl(${280 + Math.sin(i * 0.4) * 60} 65% ${45 + h / 20}%)`
+        c2.fillRect(14 + i * 30, 560 - h, 22, h)
+      }
+
+      const c3 = demoCanvases[2].ctx
+      c3.fillStyle = "#05070f"
+      c3.fillRect(0, 0, 800, 600)
+      c3.fillStyle = "#fff"
+      for (const star of stars) {
+        star.z -= 2.2
+        if (star.z <= 1) star.z = 420
+        const sx = 400 + (star.x / star.z) * 380
+        const sy = 300 + (star.y / star.z) * 380
+        const size = Math.max(0.5, 5 - star.z / 90)
+        c3.globalAlpha = Math.min(1, 1.4 - star.z / 420)
+        c3.fillRect(sx, sy, size, size)
+      }
+      c3.globalAlpha = 1
+
+      const c4 = demoCanvases[3].ctx
+      c4.fillStyle = "#0f1f1a"
+      c4.fillRect(0, 0, 800, 600)
+      for (const ball of balls) {
+        ball.x += ball.vx
+        ball.y += ball.vy
+        if (ball.x < ball.r || ball.x > 800 - ball.r) ball.vx *= -1
+        if (ball.y < ball.r || ball.y > 600 - ball.r) ball.vy *= -1
+        ball.x = Math.min(800 - ball.r, Math.max(ball.r, ball.x))
+        ball.y = Math.min(600 - ball.r, Math.max(ball.r, ball.y))
+        c4.fillStyle = `hsl(${ball.hue} 70% 60%)`
+        c4.beginPath()
+        c4.arc(ball.x, ball.y, ball.r, 0, Math.PI * 2)
+        c4.fill()
+      }
+
+      requestAnimationFrame(drawDemoCanvases)
+    }
+    requestAnimationFrame(drawDemoCanvases)
   </script>
   <script src="https://cdn.jsdelivr.net/npm/popupable/dist/popupable.min.js"></script>
 </body>
