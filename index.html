@@ -1333,6 +1333,19 @@
     </section>
 
     <section>
+      <h2>Looping gallery</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-looping</code>. Going next from the last item flies back to the first, and prev from the first flies to the last. Arrow buttons never disable.</p>
+
+      <div class="row" data-popupable-group="looping-gallery" data-popupable-looping data-popupable-counter data-popupable-thumbnails>
+        <img src="https://picsum.photos/id/620/1024/1024" class="gallery-thumb" data-popupable>
+        <img src="https://picsum.photos/id/621/1024/1024" class="gallery-thumb" data-popupable>
+        <img src="https://picsum.photos/id/622/1024/1024" class="gallery-thumb" data-popupable>
+        <img src="https://picsum.photos/id/623/1024/1024" class="gallery-thumb" data-popupable>
+        <img src="https://picsum.photos/id/624/1024/1024" class="gallery-thumb" data-popupable>
+      </div>
+    </section>
+
+    <section>
       <h2>Canvas (live, animated)</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">A <code>&lt;canvas&gt;</code> being redrawn every frame. The popup shows a live mirror, so the animation keeps running inside it.</p>
 

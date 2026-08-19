@@ -248,10 +248,15 @@
   function buildDecodeQueue(state, idx = state.group?.currentIndex, { delayRelease = true } = {}) {
     if (!state.group) return
     const len = state.group.length
+    const looping = state.looping && len > 1
+    const distance = i => {
+      const d = Math.abs(i - idx)
+      return looping ? Math.min(d, len - d) : d
+    }
     const releaseDelay = delayRelease ? getReleaseDelay(state) : 0
     for (let i = 0; i < len; i++) {
       const item = state.group[i]
-      if (Math.abs(i - idx) > DECODE_WINDOW) {
+      if (distance(i) > DECODE_WINDOW) {
         if (item.releaseDecode && !item._releaseTimer) {
           if (releaseDelay <= 0) {
             item.releaseDecode()
@@ -268,10 +273,17 @@
       }
     }
     const queue = []
-    if (idx !== state.group.currentIndex && idx >= 0 && idx < len) queue.push(state.group[idx])
+    const queued = new Set([state.group.currentIndex])
+    const pushIndex = i => {
+      if (looping) i = ((i % len) + len) % len
+      if (i < 0 || i >= len || queued.has(i)) return
+      queued.add(i)
+      queue.push(state.group[i])
+    }
+    pushIndex(idx)
     for (let offset = 1; offset <= DECODE_WINDOW; offset++) {
-      if (idx + offset < len) queue.push(state.group[idx + offset])
-      if (idx - offset >= 0) queue.push(state.group[idx - offset])
+      pushIndex(idx + offset)
+      pushIndex(idx - offset)
     }
     state.decodeQueue = queue
     runDecodeQueue(state)
@@ -979,6 +991,7 @@
       noUpscale: inheritAttr(original, "data-popupable-no-upscale"),
       counter: inheritAttr(original, "data-popupable-counter"),
       thumbnails: inheritAttr(original, "data-popupable-thumbnails"),
+      looping: inheritAttr(original, "data-popupable-looping"),
       order: parsePopupableOrder(inheritStringAttr(original, "data-popupable-order")),
       animationName,
       animation,
@@ -1244,15 +1257,17 @@
         })
       }
 
+      const looping = cloneObj.looping && group.length > 1
+
       viewportLayer.innerHTML = `
-        <div class="popupable-button-container popupable-prev-container${!group.currentIndex ? " popupable-button-disabled" : ""}">
+        <div class="popupable-button-container popupable-prev-container${!looping && !group.currentIndex ? " popupable-button-disabled" : ""}">
           <div class="popupable-button popupable-prev">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor">
               <path d="m313-440 224 224-57 56-320-320 320-320 57 56-224 224h487v80H313Z"/>
             </svg>
           </div>
         </div>
-        <div class="popupable-button-container popupable-next-container${group.currentIndex === group.length - 1 ? " popupable-button-disabled" : ""}">
+        <div class="popupable-button-container popupable-next-container${!looping && group.currentIndex === group.length - 1 ? " popupable-button-disabled" : ""}">
           <div class="popupable-button popupable-next">
             <svg width="24px" height="24px" viewBox="0 -960 960 960" fill="currentColor">
               <path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/>
@@ -1290,16 +1305,8 @@
       recalculateVisible = async () => {
         const current = group[group.currentIndex]
         current.markAsActiveInGroup()
-        if (group.currentIndex) {
-          prev.classList.remove("popupable-button-disabled")
-        } else {
-          prev.classList.add("popupable-button-disabled")
-        }
-        if (group.currentIndex === group.length - 1) {
-          next.classList.add("popupable-button-disabled")
-        } else {
-          next.classList.remove("popupable-button-disabled")
-        }
+        prev.classList.toggle("popupable-button-disabled", !looping && !group.currentIndex)
+        next.classList.toggle("popupable-button-disabled", !looping && group.currentIndex === group.length - 1)
         for (const [i, clone] of group.entries()) {
           const index = i - group.currentIndex
           clone.cloneContainer.style.setProperty("--popupable-offset-multiplier", index)
@@ -1390,12 +1397,18 @@
       }
 
       goNext = () => {
-        if (group.currentIndex >= group.length - 1) return
+        if (group.currentIndex >= group.length - 1) {
+          if (looping) pauseAndSwitch(0)
+          return
+        }
         pauseAndSwitch(group.currentIndex + 1)
       }
 
       goPrev = () => {
-        if (group.currentIndex <= 0) return
+        if (group.currentIndex <= 0) {
+          if (looping) pauseAndSwitch(group.length - 1)
+          return
+        }
         pauseAndSwitch(group.currentIndex - 1)
       }
 

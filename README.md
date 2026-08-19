@@ -63,6 +63,7 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-zoomable` | Enables click/tap-to-zoom and scroll wheel zoom. |
 | `data-popupable-anim="name"` | Sets the open/close animation style. |
 | `data-popupable-group="name"` | Groups images into a navigable gallery. Can be placed on a container element to group all `data-popupable` children. |
+| `data-popupable-looping` | Makes a group loop: next from the last item goes back to the first, and prev from the first goes to the last. |
 | `data-popupable-counter` | Shows a "1 / N" counter when in a group. |
 | `data-popupable-thumbnails` | Shows a thumbnail strip when in a group. |
 | `data-popupable-thumb="url"` | Image to use for this element in the thumbnail strip. Falls back to `data-popupable-src` and then `src`. Useful for serving a small thumbnail image instead of letting the strip render the full popup source, which keeps the strip lightweight even with many large images. |
@@ -226,6 +227,18 @@ Place `data-popupable-group` directly on elements or on a container to group all
 
 <!-- Or on a container (inherited) -->
 <div data-popupable-group="holiday">
+  <img src="photo1.jpg" data-popupable>
+  <img src="photo2.jpg" data-popupable>
+  <img src="photo3.jpg" data-popupable>
+</div>
+```
+
+#### Looping
+
+Add `data-popupable-looping` to make a gallery wrap around: navigating next from the last item flies back to the first, and prev from the first flies to the last. The arrow buttons never disable. Like other attributes it can go on the group container:
+
+```html
+<div data-popupable-group="holiday" data-popupable-looping>
   <img src="photo1.jpg" data-popupable>
   <img src="photo2.jpg" data-popupable>
   <img src="photo3.jpg" data-popupable>

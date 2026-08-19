@@ -596,6 +596,21 @@
       </div>
 
       <div class="section">
+        <h2>Looping Galleries</h2>
+        <p>Add <code>data-popupable-looping</code> to make a gallery wrap around. Navigating next from the last item flies back to the first, prev from the first flies to the last, and the arrow buttons never disable.</p>
+        <div class="image-grid" data-popupable-group="gallery-looping" data-popupable-looping data-popupable-counter>
+          <img src="https://picsum.photos/id/431/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/435/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/442/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/449/1600/1200.webp" data-popupable>
+        </div>
+        <pre>&lt;div data-popupable-group="gallery" data-popupable-looping&gt;
+  &lt;img src="photo1.webp" data-popupable&gt;
+  &lt;img src="photo2.webp" data-popupable&gt;
+&lt;/div&gt;</pre>
+      </div>
+
+      <div class="section">
         <h2>Counter</h2>
         <p>Add <code>data-popupable-counter</code> to show the current position within the group.</p>
         <div class="image-grid">
