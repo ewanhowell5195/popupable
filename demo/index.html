@@ -471,6 +471,33 @@
       </div>
 
       <div class="section">
+        <h2>Custom HTML Content</h2>
+        <p>Titles and descriptions render as plain text. For styled captions, point <code>data-popupable-content</code> at an element with a CSS selector. Its markup is cloned into the popup, replacing the title and description. Hide the source element with <code>hidden</code> or an inline <code>display: none</code>; both are stripped from the clone. Reuse the <code>popupable-title</code> and <code>popupable-description</code> classes to match the built-in styling, or bring entirely your own markup.</p>
+
+        <div id="demo-custom-content-1" hidden>
+          <div class="popupable-title">Autumn <em>Forest</em> Path</div>
+          <div class="popupable-description">A winding trail through <strong>golden autumn</strong> woodland, with <span style="color: #f7b733;">colored</span> <span style="color: #7ec8e3;">text</span> and <a href="https://github.com/ewanhowell5195/popupable" target="_blank" style="color: #8cf;">a link</a>.</div>
+        </div>
+        <div id="demo-custom-content-2" hidden>
+          <div style="font-size: 26px; font-weight: 700; letter-spacing: 1px;">FULLY CUSTOM MARKUP</div>
+          <div style="opacity: 0.75; font-size: 14px;">No title/description classes here, just your own HTML and styles.</div>
+        </div>
+
+        <div class="image-grid" data-popupable-group="custom-content" data-popupable-counter>
+          <img src="https://picsum.photos/id/619/1600/1200.webp" data-popupable
+               data-popupable-content="#demo-custom-content-1">
+          <img src="https://picsum.photos/id/645/1600/1200.webp" data-popupable
+               data-popupable-content="#demo-custom-content-2">
+        </div>
+        <pre>&lt;img src="image.webp" data-popupable data-popupable-content="#caption"&gt;
+
+&lt;div id="caption" hidden&gt;
+  &lt;div class="popupable-title"&gt;Autumn &lt;em&gt;Forest&lt;/em&gt; Path&lt;/div&gt;
+  &lt;div class="popupable-description"&gt;With &lt;strong&gt;bold&lt;/strong&gt; and &lt;a href="..."&gt;links&lt;/a&gt;&lt;/div&gt;
+&lt;/div&gt;</pre>
+      </div>
+
+      <div class="section">
         <h2>Alternate Image Source</h2>
         <p>Use <code>data-popupable-src</code> to specify a different image source for the popup. This can be used to display a completely different image, or to load a higher resolution version.</p>
         <div class="image-grid">

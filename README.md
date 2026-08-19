@@ -57,6 +57,7 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-src="url"` | A different image to display when the popup is open, e.g. a higher resolution version. |
 | `data-popupable-title="text"` | Title text shown alongside the image. |
 | `data-popupable-description="text"` | Description text shown alongside the image. |
+| `data-popupable-content="selector"` | CSS selector of an element whose markup is shown as the popup content. Replaces `data-popupable-title` and `data-popupable-description` when present. |
 | `data-popupable-transparent` | Shows a checkerboard background behind transparent images. |
 | `data-popupable-maintain-aspect` | Uses the element's rendered aspect ratio instead of the image's natural dimensions. |
 | `data-popupable-no-upscale` | Prevents the popup from scaling the image beyond its native resolution. |
@@ -182,6 +183,27 @@ Notes on `controls`:
 * `data-popupable-zoomable` always forces `controls=false`, regardless of `data-popupable-attr`, because zoomable mode uses click and scroll for zoom/pan.
 
 Videos are always rendered with `playsInline`.
+
+### Custom HTML content
+
+`data-popupable-title` and `data-popupable-description` render as plain text. For styled captions (bold text, links, custom markup), point `data-popupable-content` at an element with a CSS selector. The element is cloned into the popup's content area, replacing the title and description:
+
+```html
+<img src="photo.jpg" data-popupable data-popupable-content="#photo-caption">
+
+<template id="photo-caption">
+  <div class="popupable-title">Sunset over <em>Santorini</em></div>
+  <div class="popupable-description">Shot on a <strong>Canon R5</strong> - <a href="/gallery">more photos</a></div>
+</template>
+```
+
+Notes:
+
+* A `<template>` is the cleanest source since it never renders on the page. Any other element also works: hide it with the `hidden` attribute or an inline `display: none`; both are stripped from the clone so it shows inside the popup.
+* **Frameworks that compile templates (e.g. Vue) treat `<template>` as their own construct** and strip its children, leaving an empty element in the DOM. Inside a Vue component, use a hidden element (`<div hidden>`) instead, or declare the `<template>` in `index.html` outside the app's render tree.
+* Reusing the `popupable-title` and `popupable-description` classes inside your markup gives it the same styling as the plain-text attributes, but any markup works.
+* The element is cloned, so event listeners attached to the source with `addEventListener` do not carry over.
+* Like all attributes it inherits, so a group container can set shared content, and individual items can override it or opt out with `data-popupable-content="false"`.
 
 ### Canvases
 

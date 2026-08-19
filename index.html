@@ -1333,6 +1333,54 @@
     </section>
 
     <section>
+      <h2>Custom HTML content</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-content="#selector"</code> to clone rich markup into the popup, replacing title/description. The middle image has both content and title/description set; content should win. The last image has only title/description.</p>
+
+      <div hidden id="custom-content-1">
+        <div class="popupable-title">Rich <em>italic</em> title</div>
+        <div class="popupable-description">With <strong>bold</strong>, <a href="#" style="color: #8cf;">a link</a>, and <span style="color: #f80;">colored text</span></div>
+      </div>
+      <div id="custom-content-2" style="display: none;">
+        <div style="font-size: 24px; font-weight: 700;">Fully custom markup 🎨</div>
+        <div style="opacity: 0.7; font-size: 13px;">hidden via inline display:none, shown in the popup</div>
+      </div>
+      <template id="custom-content-3">
+        <div class="popupable-title">From a <code>&lt;template&gt;</code></div>
+        <div class="popupable-description">Template content is cloned from <code>template.content</code>, so it never renders on the page</div>
+      </template>
+
+      <div class="row" data-popupable-group="custom-content" data-popupable-counter>
+        <img
+          src="https://picsum.photos/id/630/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-content="#custom-content-1"
+        >
+        <img
+          src="https://picsum.photos/id/631/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-content="#custom-content-2"
+          data-popupable-title="Should NOT appear"
+          data-popupable-description="Content should replace this"
+        >
+        <img
+          src="https://picsum.photos/id/632/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-content="#custom-content-3"
+        >
+        <img
+          src="https://picsum.photos/id/633/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-title="Plain title"
+          data-popupable-description="Plain description via attributes"
+        >
+      </div>
+    </section>
+
+    <section>
       <h2>Looping gallery</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-looping</code>. Going next from the last item flies back to the first, and prev from the first flies to the last. Arrow buttons never disable.</p>
 

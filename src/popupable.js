@@ -842,7 +842,25 @@
     }
 
     let content
-    if (popupableTitle || popupableDescription) {
+    const contentSelector = inheritStringAttr(original, "data-popupable-content")
+    if (contentSelector) {
+      const contentSource = (original.getRootNode?.() ?? document).querySelector(contentSelector)
+      if (contentSource) {
+        let customContent
+        if (contentSource.tagName === "TEMPLATE") {
+          customContent = contentSource.content.cloneNode(true)
+        } else {
+          customContent = contentSource.cloneNode(true)
+          customContent.removeAttribute("hidden")
+          customContent.removeAttribute("id")
+          if (customContent.style.display === "none") customContent.style.display = ""
+        }
+        content = document.createElement("div")
+        content.classList = "popupable-content"
+        content.append(customContent)
+      }
+    }
+    if (!content && (popupableTitle || popupableDescription)) {
       content = document.createElement("div")
       content.classList = "popupable-content"
 
