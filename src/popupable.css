@@ -46,6 +46,18 @@
   initial-value: ease;
 }
 
+@property --popupable-zoom-duration {
+  syntax: "<time>";
+  inherits: true;
+  initial-value: .25s;
+}
+
+@property --popupable-zoom-easing {
+  syntax: "*";
+  inherits: true;
+  initial-value: ease;
+}
+
 @property --popupable-text-color {
   syntax: "<color>";
   inherits: true;
@@ -163,6 +175,10 @@
 
 .popupable-container.popupable-open .popupable-clone-container {
   transition: transform var(--popupable-switch-duration) var(--popupable-switch-easing), translate var(--popupable-switch-duration) var(--popupable-switch-easing);
+}
+
+.popupable-container.popupable-open .popupable-clone-container.popupable-zoomed {
+  transition: transform var(--popupable-zoom-duration) var(--popupable-zoom-easing), translate var(--popupable-zoom-duration) var(--popupable-zoom-easing);
 }
 
 .popupable-clone,

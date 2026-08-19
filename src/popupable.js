@@ -1947,6 +1947,7 @@
         pinchLastDistance = null
       }
 
+      clearTimeout(current._zoomedClassTimer)
       current.cloneContainer.classList.add("popupable-zoomed")
       render()
 
@@ -1977,10 +1978,14 @@
         }
 
         pointers.clear()
-        current.cloneContainer.classList.remove("popupable-zoomed")
         current.cloneContainer.style.transition = null
         current.cloneContainer.style.transform = null
         current.cloneContainer.style.translate = null
+        clearTimeout(current._zoomedClassTimer)
+        const zoomDuration = parseCssTime(getComputedStyle(current.cloneContainer).getPropertyValue("--popupable-zoom-duration"))
+        current._zoomedClassTimer = setTimeout(() => {
+          current.cloneContainer.classList.remove("popupable-zoomed")
+        }, zoomDuration)
 
         for (const listener of state.zoomListeners) {
           listener.target.removeEventListener(listener.event, listener.func)

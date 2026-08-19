@@ -455,6 +455,8 @@ Popups can be styled using CSS variables:
   --popupable-open-easing: ease;        /* Open/close transition easing */
   --popupable-switch-duration: .25s;    /* Gallery navigation transition duration */
   --popupable-switch-easing: ease;      /* Gallery navigation transition easing */
+  --popupable-zoom-duration: .25s;      /* Zoom in/out transition duration */
+  --popupable-zoom-easing: ease;        /* Zoom in/out transition easing */
 }
 ```
 
