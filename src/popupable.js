@@ -517,7 +517,7 @@
   const VIDEO_EXTENSIONS = /\.(mp4|m4v|webm|ogv|mov|3gp|m3u8|flv)(\?|#|$)/i
 
   function isVideo(el) {
-    const explicit = inheritAttr(el, "data-popupable-type")
+    const explicit = inheritStringAttr(el, "data-popupable-type")
     if (explicit) return explicit === "video"
     if (el.tagName === "VIDEO") return true
     if (el.tagName === "IMG") return false
@@ -551,6 +551,11 @@
     const value = el.getAttribute(attr)
     if (value === "false") return
     return value || true
+  }
+
+  function inheritStringAttr(element, attr) {
+    const value = inheritAttr(element, attr)
+    if (typeof value === "string") return value
   }
 
   function resolveProp(el, key) {
@@ -595,10 +600,10 @@
     const rawAnim = inheritAttr(original, "data-popupable-anim")
     const animationName = popupableAnimTypes[rawAnim] ? rawAnim : "expand"
     const animation = popupableAnimTypes[animationName]
-    const popupableSrc = inheritAttr(original, "data-popupable-src")
+    const popupableSrc = inheritStringAttr(original, "data-popupable-src")
     const elementSrc = getElementSrc(original)
-    const popupableTitle = inheritAttr(original, "data-popupable-title")
-    const popupableDescription = inheritAttr(original, "data-popupable-description")
+    const popupableTitle = inheritStringAttr(original, "data-popupable-title")
+    const popupableDescription = inheritStringAttr(original, "data-popupable-description")
     const zoomable = inheritAttr(original, "data-popupable-zoomable")
     const styles = getComputedStyle(original)
     const baseStyles = base === original ? styles : getComputedStyle(base)
@@ -885,7 +890,7 @@
       noUpscale: inheritAttr(original, "data-popupable-no-upscale"),
       counter: inheritAttr(original, "data-popupable-counter"),
       thumbnails: inheritAttr(original, "data-popupable-thumbnails"),
-      order: parsePopupableOrder(inheritAttr(original, "data-popupable-order")),
+      order: parsePopupableOrder(inheritStringAttr(original, "data-popupable-order")),
       animationName,
       animation,
       triggerDecode,
@@ -1126,7 +1131,7 @@
               thumbnail.src = thumbSrc || poster
             } else {
               thumbnail = document.createElement("video")
-              thumbnail.src = inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+              thumbnail.src = inheritStringAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
               thumbnail.muted = true
               thumbnail.playsInline = true
               thumbnail.preload = "metadata"
@@ -1135,7 +1140,7 @@
             }
           } else {
             thumbnail = new Image()
-            thumbnail.src = thumbSrc || inheritAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
+            thumbnail.src = thumbSrc || inheritStringAttr(entry.original, "data-popupable-src") || getElementSrc(entry.original)
           }
           thumbnail.className = "popupable-thumbnail"
           thumbnail.dataset.thumbnailIndex = i
