@@ -56,6 +56,20 @@
     return count > 0 ? sum / count : 0
   }
 
+  function contentAreaHeight(state, clone, uiScale) {
+    const container = state.contentContainer
+    const measure = item => item.content ? item.content.getBoundingClientRect().height / uiScale : 0
+    if (state.fixedContentHeight) {
+      let max = 0
+      for (const item of state.group ?? [state]) {
+        max = Math.max(max, measure(item))
+      }
+      return max
+    }
+    if (clone.content) return measure(clone)
+    return container?.previousElementSibling && container?.nextElementSibling ? parseFloat(getComputedStyle(container, "::after").height) || 0 : 0
+  }
+
   function calcExpandedRect(clone) {
     const original = clone.original
     const viewportWidth = visualViewport?.width || window.innerWidth
@@ -87,10 +101,7 @@
       const counter = activePopup.popup.querySelector(".popupable-counter")
       const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
       const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
-      const contentContainerEl = activePopup.contentContainer
-      const contentHeight = clone.content ? clone.content.getBoundingClientRect().height / uiScale
-        : contentContainerEl?.previousElementSibling && contentContainerEl?.nextElementSibling ? parseFloat(getComputedStyle(contentContainerEl, "::after").height) || 0
-        : 0
+      const contentHeight = contentAreaHeight(activePopup, clone, uiScale)
       const { counterTop, contentTop, thumbnailsTop, counterBottom, contentBottom, thumbnailsBottom } = activePopup.orderPlacement
       topReserved = (counterTop ? counterHeight : 0) + (contentTop ? contentHeight : 0) + (thumbnailsTop ? thumbnailHeight : 0)
       bottomReserved = (counterBottom ? counterHeight : 0) + (contentBottom ? contentHeight : 0) + (thumbnailsBottom ? thumbnailHeight : 0)
@@ -507,14 +518,7 @@
       } else {
         active = activePopup
       }
-      if (!active.content) {
-        const el = activePopup.contentContainer
-        const afterH = el.previousElementSibling && el.nextElementSibling ? parseFloat(getComputedStyle(el, "::after").height) || 0 : 0
-        el.style.height = afterH + "px"
-      } else {
-        const rect = active.content.getBoundingClientRect()
-        activePopup.contentContainer.style.height = rect.height / uiScale + "px"
-      }
+      activePopup.contentContainer.style.height = contentAreaHeight(activePopup, active, uiScale) + "px"
     }
   }
 
@@ -1010,6 +1014,7 @@
       counter: inheritAttr(original, "data-popupable-counter"),
       thumbnails: inheritAttr(original, "data-popupable-thumbnails"),
       looping: inheritAttr(original, "data-popupable-looping"),
+      fixedContentHeight: inheritAttr(original, "data-popupable-fixed-content-height"),
       order: parsePopupableOrder(inheritStringAttr(original, "data-popupable-order")),
       animationName,
       animation,
@@ -1226,6 +1231,7 @@
     if (content || (group && group.some(c => c.content))) {
       contentContainer = document.createElement("div")
       contentContainer.classList = "popupable-content-container"
+      if (cloneObj.fixedContentHeight) contentContainer.classList.add("popupable-content-fixed-height")
     }
 
     let header, footer, counter, thumbnailsContainer, thumbnailItems, hasPositionedThumbnails, goNext, goPrev, lastWheelNavAt, recalculateVisible

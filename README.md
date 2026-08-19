@@ -58,6 +58,7 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-title="text"` | Title text shown alongside the image. |
 | `data-popupable-description="text"` | Description text shown alongside the image. |
 | `data-popupable-content="selector"` | CSS selector of an element whose markup is shown as the popup content. Replaces `data-popupable-title` and `data-popupable-description` when present. |
+| `data-popupable-fixed-content-height` | Sizes the content area to the tallest content in the group so it doesn't resize while navigating. Content is vertically centered within it. |
 | `data-popupable-transparent` | Shows a checkerboard background behind transparent images. |
 | `data-popupable-maintain-aspect` | Uses the element's rendered aspect ratio instead of the image's natural dimensions. |
 | `data-popupable-no-upscale` | Prevents the popup from scaling the image beyond its native resolution. |
@@ -204,6 +205,17 @@ Notes:
 * Reusing the `popupable-title` and `popupable-description` classes inside your markup gives it the same styling as the plain-text attributes, but any markup works.
 * The element is cloned, so event listeners attached to the source with `addEventListener` do not carry over.
 * Like all attributes it inherits, so a group container can set shared content, and individual items can override it or opt out with `data-popupable-content="false"`.
+
+### Fixed content height
+
+By default the content area resizes (with a transition) to fit each item's title/description/content as you navigate a gallery. Add `data-popupable-fixed-content-height` to size it once to the tallest content in the group instead, so the image area stays put while browsing. Content is vertically centered in the fixed area:
+
+```html
+<div data-popupable-group="holiday" data-popupable-fixed-content-height>
+  <img src="photo1.jpg" data-popupable data-popupable-description="Short caption">
+  <img src="photo2.jpg" data-popupable data-popupable-description="A much longer caption that wraps onto multiple lines">
+</div>
+```
 
 ### Canvases
 

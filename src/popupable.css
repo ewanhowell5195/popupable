@@ -395,6 +395,20 @@ video.popupable-clone:fullscreen {
   transform: translateX(calc(-50% + 80px));
 }
 
+.popupable-content-fixed-height .popupable-content {
+  bottom: auto;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.popupable-content-fixed-height .popupable-content-before {
+  transform: translate(calc(-50% - 80px), -50%);
+}
+
+.popupable-content-fixed-height .popupable-content-after {
+  transform: translate(calc(-50% + 80px), -50%);
+}
+
 .popupable-content-container:not(:first-child) .popupable-content {
   padding-top: 17px;
 }

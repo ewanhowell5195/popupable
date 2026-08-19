@@ -1333,6 +1333,34 @@
     </section>
 
     <section>
+      <h2>Fixed content height</h2>
+      <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-fixed-content-height</code>. Captions vary a lot in length, but the content area should stay at the tallest one's height while navigating, with each caption vertically centered. Compare with any other gallery, where the height animates per image.</p>
+
+      <div class="row" data-popupable-group="fixed-content" data-popupable-fixed-content-height data-popupable-counter>
+        <img
+          src="https://picsum.photos/id/640/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-title="Short"
+        >
+        <img
+          src="https://picsum.photos/id/641/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-title="Medium length title"
+          data-popupable-description="With a single line description under it"
+        >
+        <img
+          src="https://picsum.photos/id/642/1024/1024"
+          class="gallery-thumb"
+          data-popupable
+          data-popupable-title="The longest one"
+          data-popupable-description="This description is intentionally quite a lot longer than the others so that it wraps onto multiple lines and defines the fixed height that the shorter captions get centered within"
+        >
+      </div>
+    </section>
+
+    <section>
       <h2>Custom HTML content</h2>
       <p style="margin: 0; font: 14px/1.3 system-ui; opacity: 0.8;">Uses <code>data-popupable-content="#selector"</code> to clone rich markup into the popup, replacing title/description. The middle image has both content and title/description set; content should win. The last image has only title/description.</p>
 
