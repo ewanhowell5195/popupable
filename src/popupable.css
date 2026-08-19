@@ -418,7 +418,8 @@ video.popupable-clone:fullscreen {
   padding-top: 17px;
 }
 
-.popupable-content-container:not(:last-child) .popupable-content {
+.popupable-header .popupable-content-container:not(:nth-last-child(2)) .popupable-content,
+.popupable-footer .popupable-content-container:not(:last-child) .popupable-content {
   padding-bottom: 17px;
 }
 
@@ -525,7 +526,8 @@ video.popupable-clone:fullscreen {
     padding-top: 15px;
   }
 
-  .popupable-content-container:not(:last-child) .popupable-content {
+  .popupable-header .popupable-content-container:not(:nth-last-child(2)) .popupable-content,
+  .popupable-footer .popupable-content-container:not(:last-child) .popupable-content {
     padding-bottom: 15px;
   }
 
