@@ -1329,6 +1329,14 @@
       }
 
       recalculateVisible = async () => {
+        for (const clone of group) {
+          if (clone._zoomedClassTimer) {
+            clearTimeout(clone._zoomedClassTimer)
+            clone._zoomedClassTimer = undefined
+            clone.cloneContainer.classList.remove("popupable-zoomed")
+            clone.cloneContainer.style.transitionDuration = ""
+          }
+        }
         const current = group[group.currentIndex]
         current.markAsActiveInGroup()
         prev.classList.toggle("popupable-button-disabled", !looping && !group.currentIndex)
