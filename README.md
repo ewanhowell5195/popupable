@@ -57,7 +57,7 @@ Close by clicking again, or pressing Escape, Backspace, or Delete.
 | `data-popupable-src="url"` | A different image to display when the popup is open, e.g. a higher resolution version. |
 | `data-popupable-title="text"` | Title text shown alongside the image. |
 | `data-popupable-description="text"` | Description text shown alongside the image. |
-| `data-popupable-content="selector"` | CSS selector of an element whose markup is shown as the popup content. Replaces `data-popupable-title` and `data-popupable-description` when present. |
+| `data-popupable-content="selector"` | Element whose markup is shown as the popup content: an id (with or without `#`), a CSS selector, or the keywords `next`/`prev` for the next/previous sibling element. Replaces `data-popupable-title` and `data-popupable-description` when present. |
 | `data-popupable-fixed-content-height` | Sizes the content area to the tallest content in the group so it doesn't resize while navigating. Content is vertically centered within it. |
 | `data-popupable-transparent` | Shows a checkerboard background behind transparent images. |
 | `data-popupable-maintain-aspect` | Uses the element's rendered aspect ratio instead of the image's natural dimensions. |
@@ -187,15 +187,27 @@ Videos are always rendered with `playsInline`.
 
 ### Custom HTML content
 
-`data-popupable-title` and `data-popupable-description` render as plain text. For styled captions (bold text, links, custom markup), point `data-popupable-content` at an element with a CSS selector. The element is cloned into the popup's content area, replacing the title and description:
+`data-popupable-title` and `data-popupable-description` render as plain text. For styled captions (bold text, links, custom markup), point `data-popupable-content` at an element. The element is cloned into the popup's content area, replacing the title and description.
+
+The value is matched by id first, then as a CSS selector, so `photo-caption` and `#photo-caption` both work:
 
 ```html
-<img src="photo.jpg" data-popupable data-popupable-content="#photo-caption">
+<img src="photo.jpg" data-popupable data-popupable-content="photo-caption">
 
 <template id="photo-caption">
   <div class="popupable-title">Sunset over <em>Santorini</em></div>
   <div class="popupable-description">Shot on a <strong>Canon R5</strong> - <a href="/gallery">more photos</a></div>
 </template>
+```
+
+Or use the keyword `next` to pull content from the next DOM element, or `prev` for the previous one. The source element is automatically hidden on the page:
+
+```html
+<img src="photo.jpg" data-popupable data-popupable-content="next">
+<div>
+  <div class="popupable-title">Sunset over <em>Santorini</em></div>
+  <div class="popupable-description">With <strong>bold</strong> and <a href="/gallery">links</a></div>
+</div>
 ```
 
 Notes:
@@ -453,10 +465,11 @@ document.addEventListener("popupable:close", e => {
 
 popupable works inside open shadow roots out of the box. Clicks, attribute inheritance, and gallery grouping all cross shadow boundaries. Place `data-popupable-*` attributes on any ancestor and they will inherit into images inside shadow DOM.
 
-The one thing that can't be auto-injected is the hover cursor, because document-level CSS doesn't reach into shadow roots. Add this one-liner to any shadow root that hosts popupable elements:
+What can't be auto-injected before a popup first opens is document-level CSS, because it doesn't reach into shadow roots: the hover cursor, and the auto-hiding of `next`/`prev` content sources. Add this to any shadow root that hosts popupable elements:
 
 ```css
 [data-popupable], [data-popupable] * { cursor: pointer }
+[data-popupable-content="next"] + *, *:has(+ [data-popupable-content="prev"]) { display: none }
 ```
 
 Closed shadow roots (`mode: "closed"`) are not supported from the outside. To use popupable inside a closed shadow root, load it from within that root yourself so it has direct access to the contents.

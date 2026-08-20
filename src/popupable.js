@@ -540,7 +540,7 @@
     if (!(root instanceof ShadowRoot) || styledRoots.has(root)) return
     if (!shadowSheet) {
       shadowSheet = new CSSStyleSheet()
-      shadowSheet.replaceSync(`.popupable-hide{visibility:hidden!important}.popupable-loading,.popupable-loading *{cursor:wait!important}`)
+      shadowSheet.replaceSync(`.popupable-hide{visibility:hidden!important}.popupable-loading,.popupable-loading *{cursor:wait!important}[data-popupable-content="next"]+*,*:has(+ [data-popupable-content="prev"]){display:none!important}`)
     }
     styledRoots.add(root)
     root.adoptedStyleSheets = [...root.adoptedStyleSheets, shadowSheet]
@@ -859,7 +859,15 @@
     let content
     const contentSelector = inheritStringAttr(original, "data-popupable-content")
     if (contentSelector) {
-      const contentSource = (original.getRootNode?.() ?? document).querySelector(contentSelector)
+      let contentSource
+      if (contentSelector === "next") {
+        contentSource = original.nextElementSibling
+      } else if (contentSelector === "prev") {
+        contentSource = original.previousElementSibling
+      } else {
+        const root = original.getRootNode?.() ?? document
+        try { contentSource = root.getElementById?.(contentSelector) || root.querySelector(contentSelector) } catch {}
+      }
       if (contentSource) {
         let customContent
         if (contentSource.tagName === "TEMPLATE") {

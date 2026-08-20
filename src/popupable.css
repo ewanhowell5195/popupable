@@ -504,6 +504,11 @@ video.popupable-clone:fullscreen {
   cursor: zoom-out;
 }
 
+[data-popupable-content="next"] + *,
+*:has(+ [data-popupable-content="prev"]) {
+  display: none !important;
+}
+
 .popupable-block-transitions,
 .popupable-block-transitions * {
   transition: initial !important;
