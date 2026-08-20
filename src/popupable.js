@@ -852,6 +852,7 @@
           else if (raw !== "" && !Number.isNaN(num)) source[prop] = num
           else source[prop] = raw
           if (key.toLowerCase() === "controls") explicitControls = true
+          if (key.toLowerCase() === "playbackrate") source.defaultPlaybackRate = source.playbackRate
         }
       }
     }
