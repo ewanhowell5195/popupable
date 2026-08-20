@@ -2343,5 +2343,6 @@
   window.addEventListener("resize", updateExpandedSize)
   if (visualViewport) {
     visualViewport.addEventListener("resize", updateExpandedSize)
+    visualViewport.addEventListener("scroll", updateExpandedSize)
   }
 }
