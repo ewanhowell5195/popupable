@@ -471,33 +471,6 @@
       </div>
 
       <div class="section">
-        <h2>Custom HTML Content</h2>
-        <p>Titles and descriptions render as plain text. For styled captions, point <code>data-popupable-content</code> at an element with a CSS selector. Its markup is cloned into the popup, replacing the title and description. Hide the source element with <code>hidden</code> or an inline <code>display: none</code>; both are stripped from the clone. Reuse the <code>popupable-title</code> and <code>popupable-description</code> classes to match the built-in styling, or bring entirely your own markup.</p>
-
-        <div id="demo-custom-content-1" hidden>
-          <div class="popupable-title">Autumn <em>Forest</em> Path</div>
-          <div class="popupable-description">A winding trail through <strong>golden autumn</strong> woodland, with <span style="color: #f7b733;">colored</span> <span style="color: #7ec8e3;">text</span> and <a href="https://github.com/ewanhowell5195/popupable" target="_blank" style="color: #8cf;">a link</a>.</div>
-        </div>
-        <div id="demo-custom-content-2" hidden>
-          <div style="font-size: 26px; font-weight: 700; letter-spacing: 1px;">FULLY CUSTOM MARKUP</div>
-          <div style="opacity: 0.75; font-size: 14px;">No title/description classes here, just your own HTML and styles.</div>
-        </div>
-
-        <div class="image-grid" data-popupable-group="custom-content" data-popupable-counter>
-          <img src="https://picsum.photos/id/619/1600/1200.webp" data-popupable
-               data-popupable-content="#demo-custom-content-1">
-          <img src="https://picsum.photos/id/645/1600/1200.webp" data-popupable
-               data-popupable-content="#demo-custom-content-2">
-        </div>
-        <pre>&lt;img src="image.webp" data-popupable data-popupable-content="#caption"&gt;
-
-&lt;div id="caption" hidden&gt;
-  &lt;div class="popupable-title"&gt;Autumn &lt;em&gt;Forest&lt;/em&gt; Path&lt;/div&gt;
-  &lt;div class="popupable-description"&gt;With &lt;strong&gt;bold&lt;/strong&gt; and &lt;a href="..."&gt;links&lt;/a&gt;&lt;/div&gt;
-&lt;/div&gt;</pre>
-      </div>
-
-      <div class="section">
         <h2>Alternate Image Source</h2>
         <p>Use <code>data-popupable-src</code> to specify a different image source for the popup. This can be used to display a completely different image, or to load a higher resolution version.</p>
         <div class="image-grid">
@@ -626,10 +599,10 @@
         <h2>Looping Galleries</h2>
         <p>Add <code>data-popupable-looping</code> to make a gallery wrap around. Navigating next from the last item flies back to the first, prev from the first flies to the last, and the arrow buttons never disable.</p>
         <div class="image-grid" data-popupable-group="gallery-looping" data-popupable-looping data-popupable-counter>
-          <img src="https://picsum.photos/id/431/1600/1200.webp" data-popupable>
-          <img src="https://picsum.photos/id/435/1600/1200.webp" data-popupable>
-          <img src="https://picsum.photos/id/442/1600/1200.webp" data-popupable>
-          <img src="https://picsum.photos/id/449/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/29/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/49/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/136/1600/1200.webp" data-popupable>
+          <img src="https://picsum.photos/id/74/1600/1200.webp" data-popupable>
         </div>
         <pre>&lt;div data-popupable-group="gallery" data-popupable-looping&gt;
   &lt;img src="photo1.webp" data-popupable&gt;
@@ -683,8 +656,8 @@
         </div>
         <pre>&lt;video src="clip.mp4" data-popupable&gt;&lt;/video&gt;
 &lt;video src="clip.mp4" data-popupable data-popupable-attr="controls=false,loop,autoplay"&gt;&lt;/video&gt;
-&lt;video src="clip.mp4" data-popupable data-popupable-attr="playbackRate=4"&gt;&lt;/video&gt;
-&lt;video src="clip.mp4" data-popupable data-popupable-zoomable&gt;&lt;/video&gt;</pre>
+&lt;video src="clip.mp4" data-popupable data-popupable-zoomable&gt;&lt;/video&gt;
+&lt;video src="clip.mp4" data-popupable data-popupable-attr="playbackRate=4"&gt;&lt;/video&gt;</pre>
         <p style="margin-top: 20px;">A few extras specific to videos:</p>
         <h3 class="attr-heading"><code>data-popupable-attr</code></h3>
         <p>Sets properties on the underlying <code>&lt;video&gt;</code> element (e.g. <code>controls=false,loop,autoplay,playbackRate=2</code>). Comma-separated <code>name</code> or <code>name=value</code> pairs.</p>
@@ -696,7 +669,7 @@
 
       <div class="section">
         <h2>Canvases</h2>
-        <p><code>&lt;canvas&gt;</code> elements work out of the box. The popup shows a <strong>live mirror</strong> of the canvas, so anything drawn to it (animations, games, charts) keeps running inside the popup. Canvas thumbnails are live too. Mirrors pause automatically when off-screen and thumbnails redraw at a reduced rate, so it stays cheap.</p>
+        <p><code>&lt;canvas&gt;</code> elements are also supported. The popup shows a <strong>live mirror</strong> of the canvas, so anything drawn to it (animations, games, charts) keeps running inside the popup. Canvas thumbnails are live too. Mirrors pause automatically when off-screen and thumbnails redraw at a reduced rate, so it stays cheap.</p>
         <div class="image-grid" data-popupable-group="canvases" data-popupable-counter data-popupable-thumbnails>
           <canvas id="demo-canvas-1" width="800" height="600" data-popupable
                   data-popupable-title="Orbiting rings" data-popupable-description="A live canvas animation, mirrored into the popup in real time."></canvas>
@@ -709,7 +682,6 @@
         </div>
         <pre>&lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
 
-&lt;!-- Canvases group like any other media --&gt;
 &lt;div data-popupable-group="canvases" data-popupable-counter data-popupable-thumbnails&gt;
   &lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
   &lt;canvas width="800" height="600" data-popupable&gt;&lt;/canvas&gt;
