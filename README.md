@@ -421,6 +421,34 @@ window.popupableAnimTypes.myAnim = {
 }
 ```
 
+### Events
+
+popupable dispatches CustomEvents on the source element a popup was opened from:
+
+| Event | Fired when |
+|---|---|
+| `popupable:open` | The element's popup starts opening. Also fires again if a closing popup is reopened before its close animation finishes. |
+| `popupable:switch` | A gallery navigates to another item. Fires on the element switched **to**; `detail.previous` is the element switched from and `detail.index` is the new index. |
+| `popupable:close` | The popup has fully closed and been removed from the DOM. |
+
+All events bubble and cross shadow DOM boundaries, so they can also be listened for on `document`. `event.target` is the relevant source element and `event.detail.popup` is the popup container element.
+
+```js
+document.addEventListener("popupable:open", e => {
+  console.log("popup opened from", e.target)
+})
+
+document.addEventListener("popupable:switch", e => {
+  console.log("switched to", e.target, "from", e.detail.previous)
+})
+
+document.addEventListener("popupable:close", e => {
+  console.log("popup closed", e.detail.popup)
+})
+```
+
+`popupable:open` and `popupable:close` always fire on the element the popup was opened from, even after navigating a gallery. `popupable:switch` fires once per navigation action: a fling that skips multiple items fires a single event for the item landed on, with `detail.previous` being the item the fling started from.
+
 ### Shadow DOM
 
 popupable works inside open shadow roots out of the box. Clicks, attribute inheritance, and gallery grouping all cross shadow boundaries. Place `data-popupable-*` attributes on any ancestor and they will inherit into images inside shadow DOM.

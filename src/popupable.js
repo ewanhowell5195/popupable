@@ -346,6 +346,8 @@
     if (toOpen.state === "open") return
     toOpen.state = "open"
     triggerHaptic()
+    toOpen.openEventFired = true
+    toOpen.original.dispatchEvent(new CustomEvent("popupable:open", { bubbles: true, composed: true, detail: { popup: toOpen.popup } }))
 
     const { cloneContainer, popup, transition, group, listeners } = toOpen
 
@@ -463,6 +465,9 @@
         mirror.popupableStopMirror?.()
       }
       popup.remove()
+      if (check.openEventFired) {
+        original.dispatchEvent(new CustomEvent("popupable:close", { bubbles: true, composed: true, detail: { popup } }))
+      }
       if (check === activePopup) {
         enableScroll()
         previousPopup = activePopup
@@ -1338,6 +1343,16 @@
           }
         }
         const current = group[group.currentIndex]
+        if (popupState.switchIndex !== group.currentIndex && !popupState.switchEventQueued) {
+          popupState.switchEventQueued = true
+          queueMicrotask(() => {
+            popupState.switchEventQueued = false
+            if (popupState.switchIndex === group.currentIndex) return
+            const previous = group[popupState.switchIndex]?.original
+            popupState.switchIndex = group.currentIndex
+            group[group.currentIndex].original.dispatchEvent(new CustomEvent("popupable:switch", { bubbles: true, composed: true, detail: { popup, previous, index: group.currentIndex } }))
+          })
+        }
         current.markAsActiveInGroup()
         prev.classList.toggle("popupable-button-disabled", !looping && !group.currentIndex)
         next.classList.toggle("popupable-button-disabled", !looping && group.currentIndex === group.length - 1)
@@ -1818,7 +1833,7 @@
 
     popup.append(cloneList, viewportLayer)
 
-    Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, closeContainer, goNext, goPrev })
+    Object.assign(popupState, cloneObj, { popup, group, contentContainer, thumbnailsContainer, orderPlacement, closeContainer, goNext, goPrev, switchIndex: group?.currentIndex })
 
     ensureShadowStyles(original)
     const loadingTimer = setTimeout(() => {
