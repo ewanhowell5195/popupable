@@ -424,6 +424,7 @@
       }
     }
 
+    closingContainer.style.transitionDuration = ""
     setCloneToOriginalRect(closingContainer, original)
 
     if (group) {
@@ -1895,15 +1896,53 @@
       let tapTarget, tapStartX, tapStartY, tapMoved
       let usedPinchZoom = false
 
-      const rect = current.cloneContainer.getBoundingClientRect()
+      const startStyles = getComputedStyle(current.cloneContainer)
+      const startTransform = startStyles.transform
+      const startMatrix = startTransform && startTransform !== "none" ? new DOMMatrixReadOnly(startTransform) : null
+      const startScale = startMatrix ? startMatrix.a : 1
+      const rawRect = current.cloneContainer.getBoundingClientRect()
+      const rect = startMatrix ? {
+        left: rawRect.left - startMatrix.e,
+        top: rawRect.top - startMatrix.f,
+        width: rawRect.width / startMatrix.a,
+        height: rawRect.height / startMatrix.a
+      } : rawRect
       const startX = event?.clientX ?? rect.left + rect.width / 2
       const startY = event?.clientY ?? rect.top + rect.height / 2
       x = (startX - rect.left) * (1 - scale)
       y = (startY - rect.top) * (1 - scale)
 
+      const zoomScaleSpan = Math.max(1, Math.abs(initialScale - 1))
+      const proportionalZoomDuration = (from, to) => {
+        const duration = parseCssTime(getComputedStyle(current.cloneContainer).getPropertyValue("--popupable-zoom-duration"))
+        return duration * Math.min(1, Math.abs(to - from) / zoomScaleSpan)
+      }
+      const freezeTransform = () => {
+        const computed = getComputedStyle(current.cloneContainer).transform
+        if (computed && computed !== "none") current.cloneContainer.style.transform = computed
+        current.cloneContainer.style.transition = "none"
+        void current.cloneContainer.offsetWidth
+        current.cloneContainer.style.transition = null
+      }
+
       const render = () => current.cloneContainer.style.transform = `translate(${x}px, ${y}px) scale(${scale})`
 
       const clamp = value => Math.min(maxScale, Math.max(minScale, value))
+
+      let directControl = false
+      const takeDirectControl = () => {
+        if (directControl) return
+        directControl = true
+        const computed = getComputedStyle(current.cloneContainer).transform
+        if (computed && computed !== "none") {
+          const m = new DOMMatrixReadOnly(computed)
+          x = m.e
+          y = m.f
+          scale = clamp(m.a)
+          render()
+        }
+        current.cloneContainer.style.transition = "none"
+      }
 
       function zoomAt(targetScale, centerX, centerY) {
         const prevScale = scale
@@ -1949,10 +1988,15 @@
 
       clearTimeout(current._zoomedClassTimer)
       current.cloneContainer.classList.add("popupable-zoomed")
+      if (!initialPointers.length) {
+        freezeTransform()
+        current.cloneContainer.style.transitionDuration = proportionalZoomDuration(startScale, scale) + "ms"
+      }
       render()
 
       if (initialPointers.length) {
         if (!hasSwipeOffset) {
+          directControl = true
           current.cloneContainer.style.transition = "none"
         }
         tapMoved = true
@@ -1978,14 +2022,18 @@
         }
 
         pointers.clear()
-        current.cloneContainer.style.transition = null
+        const computed = getComputedStyle(current.cloneContainer).transform
+        const currentScale = computed && computed !== "none" ? new DOMMatrixReadOnly(computed).a : 1
+        const returnDuration = proportionalZoomDuration(currentScale, 1)
+        freezeTransform()
+        current.cloneContainer.style.transitionDuration = returnDuration + "ms"
         current.cloneContainer.style.transform = null
         current.cloneContainer.style.translate = null
         clearTimeout(current._zoomedClassTimer)
-        const zoomDuration = parseCssTime(getComputedStyle(current.cloneContainer).getPropertyValue("--popupable-zoom-duration"))
         current._zoomedClassTimer = setTimeout(() => {
           current.cloneContainer.classList.remove("popupable-zoomed")
-        }, zoomDuration)
+          current.cloneContainer.style.transitionDuration = ""
+        }, returnDuration)
 
         for (const listener of state.zoomListeners) {
           listener.target.removeEventListener(listener.event, listener.func)
@@ -1998,7 +2046,6 @@
           event: "pointerdown",
           func: e => {
             if (e.button !== 0) return
-            current.cloneContainer.style.transition = "none"
             popup.setPointerCapture(e.pointerId)
             pointers.set(e.pointerId, {
               id: e.pointerId,
@@ -2037,6 +2084,7 @@
               const dx = e.clientX - panLastX
               const dy = e.clientY - panLastY
               if (!dx && !dy) return
+              takeDirectControl()
               x += dx
               y += dy
               panLastX = e.clientX
@@ -2046,6 +2094,7 @@
             }
 
             if (pointers.size >= 2) {
+              takeDirectControl()
               const [p1, p2] = [...pointers.values()]
               const centerX = (p1.x + p2.x) / 2
               const centerY = (p1.y + p2.y) / 2
@@ -2115,7 +2164,7 @@
           target: popup,
           event: "wheel",
           func: e => {
-            current.cloneContainer.style.transition = "none"
+            takeDirectControl()
             if (zoomAt(scale * Math.exp(-e.deltaY * 0.002), e.clientX, e.clientY)) {
               render()
             }
