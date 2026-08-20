@@ -99,9 +99,9 @@
     let bottomReserved = 0
     if (activePopup.orderPlacement) {
       const counter = activePopup.popup.querySelector(".popupable-counter")
-      const counterHeight = counter ? counter.getBoundingClientRect().height / uiScale : 0
-      const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height / uiScale : 0
-      const contentHeight = contentAreaHeight(activePopup, clone, uiScale)
+      const counterHeight = counter ? counter.getBoundingClientRect().height : 0
+      const thumbnailHeight = activePopup.thumbnailsContainer ? activePopup.thumbnailsContainer.getBoundingClientRect().height : 0
+      const contentHeight = contentAreaHeight(activePopup, clone, uiScale) * uiScale
       const { counterTop, contentTop, thumbnailsTop, counterBottom, contentBottom, thumbnailsBottom } = activePopup.orderPlacement
       topReserved = (counterTop ? counterHeight : 0) + (contentTop ? contentHeight : 0) + (thumbnailsTop ? thumbnailHeight : 0)
       bottomReserved = (counterBottom ? counterHeight : 0) + (contentBottom ? contentHeight : 0) + (thumbnailsBottom ? thumbnailHeight : 0)
