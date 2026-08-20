@@ -151,9 +151,10 @@
       crossfade: true,
       position(el) {
         const rect = el.getBoundingClientRect()
+        const popupRect = activePopup.popup.getBoundingClientRect()
         return {
-          top: visualViewport.offsetTop + rect.top,
-          left: visualViewport.offsetLeft + rect.left,
+          top: rect.top - popupRect.top,
+          left: rect.left - popupRect.left,
           width: rect.width,
           height: rect.height
         }
@@ -196,7 +197,10 @@
 
           const viewportWidth = visualViewport?.width || window.innerWidth
           const viewportHeight = visualViewport?.height || window.innerHeight
-          return intersects({ left: 0, top: 0, right: viewportWidth, bottom: viewportHeight })
+          const popupRect = activePopup.popup.getBoundingClientRect()
+          const viewLeft = popupRect.left + (visualViewport?.offsetLeft || 0)
+          const viewTop = popupRect.top + (visualViewport?.offsetTop || 0)
+          return intersects({ left: viewLeft, top: viewTop, right: viewLeft + viewportWidth, bottom: viewTop + viewportHeight })
         },
         fallback: "pop"
       }
