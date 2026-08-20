@@ -1406,7 +1406,10 @@
             const thumbRight = thumbLeft + activeThumbnail.offsetWidth
 
             let nextScrollLeft = thumbnailsContainer.scrollLeft
-            if (thumbLeft < visibleLeft) {
+            if (!hasPositionedThumbnails) {
+              const maxScroll = thumbnailsContainer.scrollWidth - thumbnailsContainer.clientWidth
+              nextScrollLeft = Math.min(maxScroll, Math.max(0, thumbLeft + activeThumbnail.offsetWidth / 2 - thumbnailsContainer.clientWidth / 2))
+            } else if (thumbLeft < visibleLeft) {
               nextScrollLeft = Math.max(0, thumbLeft - paddingLeft)
             } else if (thumbRight > visibleRight) {
               nextScrollLeft = thumbRight - thumbnailsContainer.clientWidth + paddingRight
