@@ -301,9 +301,10 @@
   }
 
   function projectSnapIndex(group, dx) {
-    const W = window.innerWidth
+    const W = visualViewport?.width || window.innerWidth
+    const scale = visualViewport?.scale || 1
     const dxa = Math.abs(dx)
-    const threshold = Math.max(W * 0.1, 64)
+    const threshold = Math.max(W * 0.1, 64 / scale)
     if (dxa <= threshold) return group.currentIndex
     const multiplier = Math.max(0, Math.floor((dxa - W / 2) / W))
     const steps = multiplier + 1
@@ -1106,17 +1107,20 @@
       const dxa = Math.abs(dx)
       const dy = e.clientY - downY
       const dya = Math.abs(dy)
-      if (e.pointerType === "touch" && dya > 56 && dya > dxa * 1.1) {
+      const viewportScale = visualViewport?.scale || 1
+      if (e.pointerType === "touch" && dya > 56 / viewportScale && dya > dxa * 1.1) {
         closePopupable()
         return
       }
       if (activePopup.group && dxa > DRAG_THRESHOLD) {
-        const multiplier = Math.max(0, Math.floor((dxa - window.innerWidth / 2) / window.innerWidth))
-        if (dx > Math.max(window.innerWidth * 0.1, 64)) {
+        const viewportWidth = visualViewport?.width || window.innerWidth
+        const swipeThreshold = Math.max(viewportWidth * 0.1, 64 / viewportScale)
+        const multiplier = Math.max(0, Math.floor((dxa - viewportWidth / 2) / viewportWidth))
+        if (dx > swipeThreshold) {
           for (let i = 0; i <= multiplier; i++) {
             activePopup.goPrev()
           }
-        } else if (dx < -Math.max(window.innerWidth * 0.1, 64)) {
+        } else if (dx < -swipeThreshold) {
           for (let i = 0; i <= multiplier; i++) {
             activePopup.goNext()
           }
@@ -1624,7 +1628,7 @@
             event: "pointermove",
             func: e => {
               if (!thumbnailsDragging) return
-              const deltaX = e.clientX - thumbnailsStartX
+              const deltaX = (e.clientX - thumbnailsStartX) * (visualViewport?.scale || 1)
               if (Math.abs(deltaX) > DRAG_THRESHOLD) {
                 thumbnailsDragMoved = true
               }
