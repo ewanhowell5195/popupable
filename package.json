@@ -3,7 +3,7 @@
   "version": "1.11.0",
   "description": "A lightweight, zero-dependency lightbox library using modern JavaScript and CSS.",
   "author": "Ewan Howell <ewanhowell5195>",
-  "license": "MIT",
+  "license": "MPL-2.0",
   "type": "module",
   "main": "./dist/popupable.min.js",
   "style": "./dist/popupable.min.css",

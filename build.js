@@ -12,7 +12,7 @@ const css = fs.readFileSync("src/popupable.css", "utf8")
 const banner = `/*!
  * popupable
  * Version  : ${version}
- * License  : MIT
+ * License  : MPL-2.0
  * Copyright: ${new Date().getFullYear()} Ewan Howell
  */
 `

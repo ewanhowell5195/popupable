@@ -5,7 +5,7 @@ Just add `data-popupable` to any image!
 
 [![npm version](https://badge.fury.io/js/popupable.svg)](https://www.npmjs.com/package/popupable)
 [![jsDelivr](https://data.jsdelivr.com/v1/package/npm/popupable/badge)](https://www.jsdelivr.com/package/npm/popupable)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MPL 2.0](https://img.shields.io/badge/License-MPL_2.0-brightgreen.svg)](https://opensource.org/licenses/MPL-2.0)
 
 [**Live Demo**](https://popupable.ewanhowell.com/)
 
@@ -514,4 +514,4 @@ This gives a seamless visual transition with no layout shifts.
 
 ## License
 
-MIT © [Ewan Howell](https://ewanhowell.com/)
+[MPL-2.0](LICENSE) © [Ewan Howell](https://ewanhowell.com/)
