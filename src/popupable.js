@@ -469,6 +469,7 @@
       for (const mirror of popup.querySelectorAll("canvas")) {
         mirror.popupableStopMirror?.()
       }
+      check.contentObserver?.disconnect()
       popup.remove()
       if (check.openEventFired) {
         original.dispatchEvent(new CustomEvent("popupable:close", { bubbles: true, composed: true, detail: { popup } }))
@@ -1877,6 +1878,13 @@
       cloneObj.source.play().catch(() => {})
     }
     disableScroll()
+
+    if (contentContainer) {
+      popupState.contentObserver = new ResizeObserver(updateExpandedSize)
+      for (const item of group ?? [cloneObj]) {
+        if (item.content) popupState.contentObserver.observe(item.content)
+      }
+    }
 
     const styles = getComputedStyle(popup)
     popupState.transition.duration = parseFloat(styles.transitionDuration) * 1000 + parseFloat(styles.transitionDelay) * 1000
