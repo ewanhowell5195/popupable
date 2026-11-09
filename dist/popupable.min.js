@@ -1,6 +1,6 @@
 /*!
  * popupable
- * Version  : 1.11.1
+ * Version  : 1.11.2
  * License  : MPL-2.0
  * Copyright: 2026 Ewan Howell
  */

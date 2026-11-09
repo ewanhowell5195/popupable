@@ -87,6 +87,12 @@ Set an attribute to `"false"` to explicitly unset an inherited value:
 </div>
 ```
 
+Attributes on `<body>` or `<html>` act as site-wide defaults:
+
+```html
+<body data-popupable-looping data-popupable-order="content,image,counter,thumbnails">
+```
+
 ## Advanced Usage
 
 ### Non-image elements
